@@ -1,5 +1,4 @@
 #include <iostream>
-#include <chrono>
 
 using namespace std;
 
@@ -15,12 +14,5 @@ public:
     int AST_home;              // 4 bytes
     int REB_home;              // 4 bytes
     bool HOME_TEAM_WINS;       // 1 byte
-    // 33 bytes
+    // 33 bytes (36 bytes with padding)
 };
-
-main()
-{
-    GameEntry gameEntry;
-    cout << "Size of GameEntry: " << sizeof(gameEntry) << " bytes" << endl; // 36 bytes (33 bytes + 3 bytes padding)
-    return 0;
-}

@@ -9,7 +9,7 @@ struct GameEntry // 33 bytes
     std::time_t GAME_DATE_EST; // 8 bytes
     int TEAM_ID_home;          // 4 bytes
     int PTS_home;              // 4 bytes
-    float FG_PCT_home;         // 4 bytes
+    float FG_PCT_home;         // Key // 4 bytes
     float FT_PCT_home;         // 4 bytes
     float FG3_PCT_home;        // 4 bytes
     int AST_home;              // 4 bytes
@@ -19,15 +19,15 @@ struct GameEntry // 33 bytes
 
 const int BLOCK_SIZE = 512;
 const int ENTRY_SIZE = sizeof(GameEntry) + sizeof(int); // 33 + 4 = 37
-const int maxEntriesPerBlock = (BLOCK_SIZE - sizeof(int) - sizeof(bool)) / (ENTRY_SIZE + sizeof(int));
-// 512 - 4 - 1 = 507
-// 507 / 37 = 13
-struct Node
+const int MAX_ENTRIES_PER_BLOCK = (BLOCK_SIZE - sizeof(int)) / ENTRY_SIZE;
+
+// (BLCOK_SIZE - n - childrenPtr) / (key + ptr)
+const int MAX_INDEX_PER_BLOCK = (BLOCK_SIZE - sizeof(int) - sizeof(int)) / (sizeof(int) + sizeof(int));
+
+struct GameEntryBlock
 {
-    int n;
-    GameEntry entries[13];  // maxEntriesPerBlock
-    Node *children[13 + 1]; // maxEntriesPerBlock + 1
-    bool leaf;
+    int n; // Number of entries in the block
+    GameEntry entries[MAX_ENTRIES_PER_BLOCK];
 };
 
 #endif // CONSTANTS_H

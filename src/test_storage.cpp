@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
-#include "storage.cpp"
+#include "Storage.cpp"
 
 void testAddBlock()
 {
@@ -14,7 +14,7 @@ void testAddBlock()
     }
 
     // Create a storage object with the temporary file
-    storage storageObj(file);
+    Storage storageObj(file);
 
     // Define a block of data to add
     const char blockData[BLOCK_SIZE] = "This is a test block of data.";
@@ -47,7 +47,7 @@ void testAddMultipleBlocks()
     }
 
     // Create a storage object with the temporary file
-    storage storageObj(file);
+    Storage storageObj(file);
 
     // Define multiple blocks of data to add
     const char blockData1[BLOCK_SIZE] = "This is the first test block of data.";
@@ -88,7 +88,7 @@ void testAddBlockWithPersistentFile()
     }
 
     // Create a storage object with the test file
-    storage storageObj(file);
+    Storage storageObj(file);
 
     // Define a block of data to add
     const char blockData[BLOCK_SIZE] = "This is a test block of data for persistent file.";
@@ -122,7 +122,7 @@ void testReadingSecondBlock()
     }
 
     // Create a storage object with the temporary file
-    storage storageObj(file);
+    Storage storageObj(file);
 
     // Define multiple blocks of data to add
     const char blockData1[BLOCK_SIZE] = "This is the first test block of data.";

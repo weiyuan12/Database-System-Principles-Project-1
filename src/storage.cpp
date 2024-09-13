@@ -2,26 +2,26 @@
 
 #include "./constants.h"
 
-class storage
+class Storage
 {
 private:
     /* data */
     FILE *ptr;
 
 public:
-    storage(FILE *fileHandle); // Constructor taking a file handle
+    Storage(FILE *fileHandle); // Constructor taking a file handle
     char *addBlock(const char *blockData);
-    ~storage();
+    ~Storage();
     void deleteBlock(char *block);
     char *readBlock(int blockNumber);
 };
 
-storage::storage(FILE *fileHandle)
+Storage::Storage(FILE *fileHandle)
 {
     ptr = fileHandle;
 }
 
-char *storage::addBlock(const char *blockData)
+char *Storage::addBlock(const char *blockData)
 {
     fseek(ptr, 0, SEEK_END);                          // Move the file pointer to the end of the file
     fwrite(blockData, sizeof(char), BLOCK_SIZE, ptr); // Write the block data to the file
@@ -52,7 +52,7 @@ char *storage::addBlock(const char *blockData)
  * @param blockNumber The number of the block to be read.
  * @return A pointer to the block data.
  */
-char *storage::readBlock(int blockNumber)
+char *Storage::readBlock(int blockNumber)
 {
     // Calculate the position of the block
     long int position = blockNumber * BLOCK_SIZE;
@@ -70,13 +70,13 @@ char *storage::readBlock(int blockNumber)
     return blockData;
 }
 
-void storage::deleteBlock(char *block)
+void Storage::deleteBlock(char *block)
 {
     // This function is not needed for the project
     // Add documentation here explaining why it is not needed
 }
 
-storage::~storage()
+Storage::~Storage()
 {
     fclose(ptr); // Close the file handle
 }

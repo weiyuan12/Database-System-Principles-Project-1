@@ -21,7 +21,7 @@ const int BLOCK_SIZE = 512;
 const int ENTRY_SIZE = sizeof(GameEntry) + sizeof(int); // 33 + 4 = 37
 const int MAX_ENTRIES_PER_BLOCK = (BLOCK_SIZE - sizeof(int)) / ENTRY_SIZE;
 
-// (BLCOK_SIZE - n - childrenPtr) / (key + ptr)
+// (BLCOK_SIZE - number_of_keys - childrenPtr) / (key + ptr)
 const int MAX_INDEX_PER_BLOCK = (BLOCK_SIZE - sizeof(int) - sizeof(int)) / (sizeof(int) + sizeof(int));
 
 struct GameEntryBlock

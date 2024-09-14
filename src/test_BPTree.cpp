@@ -38,7 +38,7 @@ void testBPTreeInitialization()
     BPTree bptree = BPTree(&storage);
 
     assert(bptree.depth == 5);
-    assert(bptree.root->n == 3);
+    assert(bptree.root->numKeys == 3);
     assert(bptree.root->keys[0] == 1);
     assert(bptree.root->keys[1] == 2);
     assert(bptree.root->keys[2] == 3);

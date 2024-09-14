@@ -21,8 +21,7 @@ public:
     int depth;        // Depth of the B-tree
     BPTreeNode *root; // Pointer to the root node of the B-tree
     Storage *storage;
-
-    BPTree(FILE *file);
+    BPTree(Storage *storage);
     ~BPTree();
 };
 
@@ -38,9 +37,9 @@ void BPTree::readMetadata(void *buffer)
     root = new BPTreeNode(storage->readBlock(1));
 }
 
-BPTree::BPTree(FILE *file)
+BPTree::BPTree(Storage *storage)
 {
-    this->storage = new Storage(file);
+    this->storage = storage;
     void *buffer = storage->readBlock(0);
     readMetadata(buffer);
     root = new BPTreeNode(storage->readBlock(1));

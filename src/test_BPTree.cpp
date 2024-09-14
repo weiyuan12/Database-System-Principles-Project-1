@@ -1,4 +1,6 @@
 #include <iostream>
+#include <stdio.h>
+#include <fstream>
 #include "BPTree.cpp"
 // #include "Storage.cpp"
 #include <cassert>
@@ -6,14 +8,15 @@
 void testBPTreeInitialization()
 {
     // Create a temporary file for testing
-    FILE *file = tmpfile();
+    std::fstream file("testBPTreeInitialization", std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
     if (!file)
     {
         std::cerr << "Failed to create temporary file" << std::endl;
         return;
     }
 
-    Storage storage = Storage(file);
+    // Create a storage object with the temporary file
+    Storage storage = Storage(&file);
 
     // Writing to metadata block
     char *blockData = new char[BLOCK_SIZE];
@@ -32,7 +35,7 @@ void testBPTreeInitialization()
     rootNode.serialize(blockData);
     storage.addBlock(blockData);
 
-    BPTree bptree = BPTree(file);
+    BPTree bptree = BPTree(&storage);
 
     assert(bptree.depth == 5);
     assert(bptree.root->n == 3);
@@ -45,6 +48,11 @@ void testBPTreeInitialization()
     assert(bptree.root->childrenPtr[3] == 3);
 
     std::cout << "B+ tree initialization test passed!" << std::endl;
+
+    // Clean up
+    delete[] blockData;
+    file.close();
+    std::remove("testBPTreeInitialization");
 }
 
 int main()

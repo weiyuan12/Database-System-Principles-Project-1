@@ -16,6 +16,10 @@ public:
     int n;                                    // Number of entries in the node
     int keys[MAX_INDEX_PER_BLOCK];            // Array of keys
     int childrenPtr[MAX_INDEX_PER_BLOCK + 1]; // Array of child keys
+    // At the leaf level, the childrenPtr will be a pointer to the data block
+    // Up to you to use sparse or dense index
+    // - Sparse index: will allow more data to be stored
+    // - Dense index: will search in O(1) instead of O(entries per block)
 
     // These values do not need to be stored in the block
     // We may not need depth as the depth of the tree can be calculated from the root node

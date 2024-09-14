@@ -1,5 +1,7 @@
 #include <cstdio>
 #include <fstream>
+#ifndef STORAGE_H
+#define STORAGE_H
 
 #include "./constants.h"
 
@@ -86,3 +88,5 @@ Storage::~Storage()
     // Delete the file handle
     delete ptr;
 }
+
+#endif // STORAGE_H

@@ -5,6 +5,9 @@
 #include <cmath>
 #include <cstring> // Add this line to include the <cstring> header ?
 
+// (BLCOK_SIZE - number_of_keys - childrenPtr) / (key + ptr)
+const int MAX_INDEX_PER_BLOCK = (BLOCK_SIZE - sizeof(int) - sizeof(int)) / (sizeof(int) + sizeof(int));
+
 class BPTreeNode
 {
 private:

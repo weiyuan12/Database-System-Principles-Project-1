@@ -1,12 +1,13 @@
-#include <iostream>
-#include <cstdio>
-#include <cstring>
+#include <stdio.h>
+#include <fstream> // Add this line
+#include <cstring> // Add this line for std::memcmp
 #include "Storage.cpp"
+#include <iostream>
 
 void testAddBlock()
 {
     // Create a temporary file for testing
-    FILE *file = tmpfile();
+    std::fstream file("testAddBlock", std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
     if (!file)
     {
         std::cerr << "Failed to create temporary file" << std::endl;
@@ -14,7 +15,7 @@ void testAddBlock()
     }
 
     // Create a storage object with the temporary file
-    Storage storageObj(file);
+    Storage storageObj = Storage(&file);
 
     // Define a block of data to add
     const char blockData[BLOCK_SIZE] = "This is a test block of data.";
@@ -34,12 +35,13 @@ void testAddBlock()
 
     // Clean up
     delete[] addedBlock;
+    file.close();
+    std::remove("testAddBlock");
 }
 
 void testAddMultipleBlocks()
 {
-    // Create a temporary file for testing
-    FILE *file = tmpfile();
+    std::fstream file("testAddMultipleBlocks", std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
     if (!file)
     {
         std::cerr << "Failed to create temporary file" << std::endl;
@@ -47,7 +49,7 @@ void testAddMultipleBlocks()
     }
 
     // Create a storage object with the temporary file
-    Storage storageObj(file);
+    Storage storageObj = Storage(&file);
 
     // Define multiple blocks of data to add
     const char blockData1[BLOCK_SIZE] = "This is the first test block of data.";
@@ -75,20 +77,22 @@ void testAddMultipleBlocks()
     delete[] addedBlock1;
     delete[] addedBlock2;
     delete[] addedBlock3;
+    file.close();
+    std::remove("testAddMultipleBlocks");
 }
 
 void testAddBlockWithPersistentFile()
 {
-    // Create a file for testing
-    FILE *file = fopen("test_storage_file.bin", "w+b");
+    // Create a temporary file for testing
+    std::fstream file("testAddBlockWithPersistentFile", std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
     if (!file)
     {
-        std::cerr << "Failed to create test file" << std::endl;
+        std::cerr << "Failed to create temporary file" << std::endl;
         return;
     }
 
-    // Create a storage object with the test file
-    Storage storageObj(file);
+    // Create a storage object with the temporary file
+    Storage storageObj = Storage(&file);
 
     // Define a block of data to add
     const char blockData[BLOCK_SIZE] = "This is a test block of data for persistent file.";
@@ -108,13 +112,13 @@ void testAddBlockWithPersistentFile()
 
     // Clean up
     delete[] addedBlock;
-    fclose(file);
+    file.close();
 }
 
 void testReadingSecondBlock()
 {
     // Create a temporary file for testing
-    FILE *file = tmpfile();
+    std::fstream file("testReadingSecondBlock", std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
     if (!file)
     {
         std::cerr << "Failed to create temporary file" << std::endl;
@@ -122,7 +126,7 @@ void testReadingSecondBlock()
     }
 
     // Create a storage object with the temporary file
-    Storage storageObj(file);
+    Storage storageObj = Storage(&file);
 
     // Define multiple blocks of data to add
     const char blockData1[BLOCK_SIZE] = "This is the first test block of data.";
@@ -152,6 +156,9 @@ void testReadingSecondBlock()
     delete[] addedBlock2;
     delete[] addedBlock3;
     delete[] readBlock2;
+
+    file.close();
+    std::remove("testReadingSecondBlock");
 }
 
 int main()

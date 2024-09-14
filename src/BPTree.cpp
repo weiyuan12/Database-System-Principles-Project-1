@@ -1,5 +1,3 @@
-
-
 /**
  * @file btree_metadata.h
  * @brief This file contains the metadata for the B-tree and handles file operations.
@@ -22,9 +20,24 @@ public:
     BPTreeNode *root; // Pointer to the root node of the B-tree
     Storage *storage;
 
-    BPTree(FILE *file);
+    int find(int key);
+    void bulkLoad(/*args*/);
+    BPTree(Storage *storage);
     ~BPTree();
 };
+
+// TODO: Implement the find method
+// We can treat -1 as cannot find the key
+int BPTree::find(int key)
+{
+    return 0;
+}
+
+// TODO: Implement Bulk Load
+void BPTree::bulkLoad(/*args*/)
+{
+    // Implement bulk load here
+}
 
 void BPTree::readMetadata(void *buffer)
 {
@@ -35,17 +48,20 @@ void BPTree::readMetadata(void *buffer)
     depth = *reinterpret_cast<int *>(block);
 
     // Read the root node from the block
-    root = new BPTreeNode(storage->readBlock(1));
+    char *rootBuffer = new char[BLOCK_SIZE];
+    storage->readBlock(rootBuffer, 1); // first block is metadata
+    root = new BPTreeNode(rootBuffer);
 }
 
-BPTree::BPTree(FILE *file)
+BPTree::BPTree(Storage *storage)
 {
-    this->storage = new Storage(file);
-    void *buffer = storage->readBlock(0);
-    readMetadata(buffer);
-    root = new BPTreeNode(storage->readBlock(1));
+    this->storage = storage;
+    char *metadataBuffer = new char[BLOCK_SIZE];
+    storage->readBlock(metadataBuffer, 0);
+    readMetadata(metadataBuffer);
 }
 
 BPTree::~BPTree()
 {
+    delete root;
 }

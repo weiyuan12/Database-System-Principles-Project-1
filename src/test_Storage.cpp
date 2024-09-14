@@ -1,12 +1,13 @@
-#include <iostream>
-#include <cstdio>
-#include <cstring>
+#include <stdio.h>
+#include <fstream> // Add this line
+#include <cstring> // Add this line for std::memcmp
 #include "Storage.cpp"
+#include <iostream>
 
 void testAddBlock()
 {
     // Create a temporary file for testing
-    FILE *file = tmpfile();
+    std::fstream file("testAddBlock", std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
     if (!file)
     {
         std::cerr << "Failed to create temporary file" << std::endl;
@@ -14,13 +15,16 @@ void testAddBlock()
     }
 
     // Create a storage object with the temporary file
-    Storage storageObj(file);
+    Storage storageObj = Storage(&file);
 
     // Define a block of data to add
     const char blockData[BLOCK_SIZE] = "This is a test block of data.";
 
     // Add the block to the storage
-    char *addedBlock = storageObj.addBlock(blockData);
+    storageObj.addBlock(blockData);
+
+    char addedBlock[BLOCK_SIZE];
+    storageObj.readBlock(addedBlock, 0);
 
     // Verify that the added block matches the original block data
     if (std::memcmp(addedBlock, blockData, BLOCK_SIZE) == 0)
@@ -33,13 +37,13 @@ void testAddBlock()
     }
 
     // Clean up
-    delete[] addedBlock;
+    file.close();
+    std::remove("testAddBlock");
 }
 
 void testAddMultipleBlocks()
 {
-    // Create a temporary file for testing
-    FILE *file = tmpfile();
+    std::fstream file("testAddMultipleBlocks", std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
     if (!file)
     {
         std::cerr << "Failed to create temporary file" << std::endl;
@@ -47,7 +51,7 @@ void testAddMultipleBlocks()
     }
 
     // Create a storage object with the temporary file
-    Storage storageObj(file);
+    Storage storageObj = Storage(&file);
 
     // Define multiple blocks of data to add
     const char blockData1[BLOCK_SIZE] = "This is the first test block of data.";
@@ -55,9 +59,17 @@ void testAddMultipleBlocks()
     const char blockData3[BLOCK_SIZE] = "This is the third test block of data.";
 
     // Add the blocks to the storage
-    char *addedBlock1 = storageObj.addBlock(blockData1);
-    char *addedBlock2 = storageObj.addBlock(blockData2);
-    char *addedBlock3 = storageObj.addBlock(blockData3);
+    storageObj.addBlock(blockData1);
+    storageObj.addBlock(blockData2);
+    storageObj.addBlock(blockData3);
+
+    char addedBlock1[BLOCK_SIZE];
+    char addedBlock2[BLOCK_SIZE];
+    char addedBlock3[BLOCK_SIZE];
+
+    storageObj.readBlock(addedBlock1, 0);
+    storageObj.readBlock(addedBlock2, 1);
+    storageObj.readBlock(addedBlock3, 2);
 
     // Verify that the added blocks match the original block data
     if (std::memcmp(addedBlock1, blockData1, BLOCK_SIZE) == 0 &&
@@ -72,29 +84,40 @@ void testAddMultipleBlocks()
     }
 
     // Clean up
-    delete[] addedBlock1;
-    delete[] addedBlock2;
-    delete[] addedBlock3;
+    file.close();
+    std::remove("testAddMultipleBlocks");
 }
 
 void testAddBlockWithPersistentFile()
 {
-    // Create a file for testing
-    FILE *file = fopen("test_storage_file.bin", "w+b");
+    // Create a temporary file for testing
+    std::fstream file("testAddBlockWithPersistentFile", std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
     if (!file)
     {
-        std::cerr << "Failed to create test file" << std::endl;
+        std::cerr << "Failed to create temporary file" << std::endl;
         return;
     }
 
-    // Create a storage object with the test file
-    Storage storageObj(file);
+    // Create a storage object with the temporary file
+    Storage storageObj = Storage(&file);
 
     // Define a block of data to add
     const char blockData[BLOCK_SIZE] = "This is a test block of data for persistent file.";
 
     // Add the block to the storage
-    char *addedBlock = storageObj.addBlock(blockData);
+    storageObj.addBlock(blockData);
+
+    // Close the file
+    file.close();
+
+    // Reopen the file
+    file.open("testAddBlockWithPersistentFile", std::ios::binary | std::ios::in | std::ios::out);
+
+    // Create a new storage object with the reopened file
+    Storage storageObj2 = Storage(&file);
+
+    char addedBlock[BLOCK_SIZE];
+    storageObj2.readBlock(addedBlock, 0);
 
     // Verify that the added block matches the original block data
     if (std::memcmp(addedBlock, blockData, BLOCK_SIZE) == 0)
@@ -107,14 +130,13 @@ void testAddBlockWithPersistentFile()
     }
 
     // Clean up
-    delete[] addedBlock;
-    fclose(file);
+    file.close();
 }
 
 void testReadingSecondBlock()
 {
     // Create a temporary file for testing
-    FILE *file = tmpfile();
+    std::fstream file("testReadingSecondBlock", std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
     if (!file)
     {
         std::cerr << "Failed to create temporary file" << std::endl;
@@ -122,7 +144,7 @@ void testReadingSecondBlock()
     }
 
     // Create a storage object with the temporary file
-    Storage storageObj(file);
+    Storage storageObj = Storage(&file);
 
     // Define multiple blocks of data to add
     const char blockData1[BLOCK_SIZE] = "This is the first test block of data.";
@@ -130,12 +152,12 @@ void testReadingSecondBlock()
     const char blockData3[BLOCK_SIZE] = "This is the third test block of data.";
 
     // Add the blocks to the storage
-    char *addedBlock1 = storageObj.addBlock(blockData1);
-    char *addedBlock2 = storageObj.addBlock(blockData2);
-    char *addedBlock3 = storageObj.addBlock(blockData3);
+    storageObj.addBlock(blockData1);
+    storageObj.addBlock(blockData2);
+    storageObj.addBlock(blockData3);
 
-    // Read the second block from the storage
-    char *readBlock2 = storageObj.readBlock(1);
+    char readBlock2[BLOCK_SIZE];
+    storageObj.readBlock(readBlock2, 1);
 
     // Verify that the read block matches the second block data
     if (std::memcmp(readBlock2, blockData2, BLOCK_SIZE) == 0)
@@ -148,10 +170,8 @@ void testReadingSecondBlock()
     }
 
     // Clean up
-    delete[] addedBlock1;
-    delete[] addedBlock2;
-    delete[] addedBlock3;
-    delete[] readBlock2;
+    file.close();
+    std::remove("testReadingSecondBlock");
 }
 
 int main()

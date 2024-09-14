@@ -18,12 +18,12 @@ struct GameEntry // 33 bytes
 };
 
 const int BLOCK_SIZE = 512;
-const int ENTRY_SIZE = sizeof(GameEntry) + sizeof(int); // 33 + 4 = 37
+const int ENTRY_SIZE = sizeof(GameEntry) + sizeof(int);
 const int MAX_ENTRIES_PER_BLOCK = (BLOCK_SIZE - sizeof(int)) / ENTRY_SIZE;
 
 struct GameEntryBlock
 {
-    int n; // Number of entries in the block
+    int count; // Number of entries in the block
     GameEntry entries[MAX_ENTRIES_PER_BLOCK];
 };
 

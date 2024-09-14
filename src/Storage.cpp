@@ -1,4 +1,8 @@
 #include <cstdio>
+#include <fstream>
+#include <iostream>
+#ifndef STORAGE_H
+#define STORAGE_H
 
 #include "./constants.h"
 
@@ -6,77 +10,59 @@ class Storage
 {
 private:
     /* data */
-    FILE *ptr;
+    std::fstream *ptr;
 
 public:
-    Storage(FILE *fileHandle); // Constructor taking a file handle
-    char *addBlock(const char *blockData);
+    Storage(std::fstream *fileHandle);
+    // Constructor taking a file handle
+    void addBlock(const char *blockData);
     ~Storage();
     void deleteBlock(char *block);
-    char *readBlock(int blockNumber);
+    void readBlock(char *readto, int blockNumber);
+    void writeBlock(int blockNumber, const char *blockData);
 };
 
-Storage::Storage(FILE *fileHandle)
+Storage::Storage(std::fstream *fileHandle)
 {
     ptr = fileHandle;
 }
 
-char *Storage::addBlock(const char *blockData)
+void Storage::addBlock(const char *blockData)
 {
-    fseek(ptr, 0, SEEK_END);                          // Move the file pointer to the end of the file
-    fwrite(blockData, sizeof(char), BLOCK_SIZE, ptr); // Write the block data to the file
-    fflush(ptr);                                      // Flush the file buffer to ensure the data is written immediately
-
-    // Calculate the position of the added block
-    long int position = ftell(ptr) - BLOCK_SIZE;
-
-    // Allocate memory for the block
-    char *addedBlock = new char[BLOCK_SIZE];
-
-    // Move the file pointer to the position of the added block
-    fseek(ptr, position, SEEK_SET);
-
-    // Read the added block from the file
-    fread(addedBlock, sizeof(char), BLOCK_SIZE, ptr);
-
-    // Move the file pointer back to the end of the file
-    fseek(ptr, 0, SEEK_END);
-
-    // Return the pointer to the added block
-    return addedBlock;
+    ptr->seekg(0, std::ios::end);      // Move the file pointer to the end of the file
+    ptr->write(blockData, BLOCK_SIZE); // Write the block data to the file
+    ptr->flush();                      // Flush the file buffer to ensure the data is written immediately
 }
 
-/**
- * @brief Reads a block of data from the storage file.
- *
- * @param blockNumber The number of the block to be read.
- * @return A pointer to the block data.
- */
-char *Storage::readBlock(int blockNumber)
+void Storage::readBlock(char *readTo, int blockNumber)
 {
     // Calculate the position of the block
     long int position = blockNumber * BLOCK_SIZE;
 
     // Move the file pointer to the position of the block
-    fseek(ptr, position, SEEK_SET);
+    ptr->seekp(position, std::ios::beg);
 
-    // Allocate memory for the block
-    char *blockData = new char[BLOCK_SIZE];
-
-    // Read the block from the file
-    fread(blockData, sizeof(char), BLOCK_SIZE, ptr);
-
-    // Return the pointer to the block
-    return blockData;
+    ptr->read(readTo, BLOCK_SIZE);
 }
 
-void Storage::deleteBlock(char *block)
+void Storage::writeBlock(int blockNumber, const char *blockData)
 {
-    // This function is not needed for the project
-    // Add documentation here explaining why it is not needed
+    // Calculate the position of the block
+    long int position = blockNumber * BLOCK_SIZE;
+
+    // Move the file pointer to the position of the block
+    ptr->seekp(position, std::ios::beg);
+
+    // Write the block data to the file
+    ptr->write(blockData, BLOCK_SIZE);
+
+    // Flush the file buffer to ensure the data is written immediately
+    ptr->flush();
 }
 
 Storage::~Storage()
 {
-    fclose(ptr); // Close the file handle
+    // Close the file handle
+    ptr->close();
 }
+#endif // STORAGE_H

@@ -22,7 +22,7 @@ void test_BPTreeNode_constructor_and_serialize()
     BPTreeNode newNode(buffer);
 
     // Check if the new BPTreeNode object has the same values as the original object
-    assert(newNode.n == n);
+    assert(newNode.numKeys == n);
 
     for (int i = 0; i < MAX_INDEX_PER_BLOCK; i++)
     {

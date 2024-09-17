@@ -72,17 +72,17 @@ int main()
     }
     std::cout << "Number of games: " << games.size() << std::endl;
 
-    std::fstream file("testReadGameEntryBlock", std::ios::in | std::ios::out | std::ios::trunc);
+    std::fstream file("testReadGameEntryBlock", std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
     Storage storage(&file);
     DataFile dataFile(&storage);
 
     // Add blocks to file
-    for (auto &block : blocks) 
+    for (auto &block : blocks)
     {
         dataFile.addGameEntryBlock(&block);
     }
 
-    //dataFile.addGameEntryBlock(&writeBlock);
+    // dataFile.addGameEntryBlock(&writeBlock);
     GameEntryBlock *readBlock = new GameEntryBlock();
 
     std::cout << "Number of blocks: " << blocks.size() << std::endl;

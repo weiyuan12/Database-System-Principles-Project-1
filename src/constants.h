@@ -4,7 +4,7 @@
 
 #include <ctime>
 
-struct GameEntry // 33 bytes
+struct GameEntry // 40 bytes
 {
     std::time_t GAME_DATE_EST; // 8 bytes
     int TEAM_ID_home;          // 4 bytes
@@ -14,11 +14,11 @@ struct GameEntry // 33 bytes
     float FG3_PCT_home;        // 4 bytes
     int AST_home;              // 4 bytes
     int REB_home;              // 4 bytes
-    bool HOME_TEAM_WINS;       // 1 byte
+    int HOME_TEAM_WINS;       // 1 byte
 };
 
 const int BLOCK_SIZE = 512;
-const int ENTRY_SIZE = sizeof(GameEntry) + sizeof(int);
+const int ENTRY_SIZE = sizeof(GameEntry);
 const int MAX_ENTRIES_PER_BLOCK = (BLOCK_SIZE - sizeof(int)) / ENTRY_SIZE;
 
 struct GameEntryBlock

@@ -5,6 +5,7 @@
 #define STORAGE_H
 
 #include "./constants.h"
+// #include <cassert>
 
 class Storage
 {
@@ -24,6 +25,7 @@ public:
 
 Storage::Storage(std::fstream *fileHandle)
 {
+    // assert(fileHandle->flags() & std::ios::binary); // Does not work
     ptr = fileHandle;
 }
 

@@ -7,7 +7,7 @@
 
 void testReadGameEntryBlock()
 {
-    std::fstream file("testReadGameEntryBlock", std::ios::in | std::ios::out | std::ios::trunc);
+    std::fstream file("testReadGameEntryBlock", std::ios::in | std::ios::out | std::ios::trunc | std::ios::binary);
     Storage storage(&file);
     DataFile dataFile(&storage);
 

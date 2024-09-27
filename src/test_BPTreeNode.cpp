@@ -22,15 +22,15 @@ void test_BPTreeNode_constructor_and_serialize()
     BPTreeNode newNode(buffer);
 
     // Check if the new BPTreeNode object has the same values as the original object
-    assert(newNode.numKeys == n);
+    assert(newNode.indexBlock->count == n);
 
     for (int i = 0; i < MAX_INDEX_PER_BLOCK; i++)
     {
-        assert(newNode.keys[i] == keys[i]);
-        assert(newNode.childrenPtr[i] == childrenPtr[i]);
+        assert(newNode.indexBlock->keys[i] == keys[i]);
+        assert(newNode.indexBlock->childrenPtr[i] == childrenPtr[i]);
     }
 
-    assert(newNode.childrenPtr[MAX_INDEX_PER_BLOCK] == childrenPtr[MAX_INDEX_PER_BLOCK]);
+    assert(newNode.indexBlock->childrenPtr[MAX_INDEX_PER_BLOCK] == childrenPtr[MAX_INDEX_PER_BLOCK]);
 
     std::cout << "BPTreeNode constructor and serialize test passed!" << std::endl;
 }

@@ -28,12 +28,17 @@ struct GameEntryBlock
 {
     GameEntry entries[MAX_ENTRIES_PER_BLOCK];
     int count; // Number of entries in the block
-
-private:
     char padding[GameEntryBlockPadding] = {"a"};
 };
 
-const int t = sizeof(GameEntryBlock);
+// ===== Index =====
+
+struct BPTreeMetadata
+{
+    int depth;
+    int rootIndex;
+    char padding[BLOCK_SIZE - 2 * sizeof(int)];
+};
 
 const int IndexBlockPadding = BLOCK_SIZE - sizeof(int) - MAX_INDEX_PER_BLOCK * sizeof(int) - (MAX_INDEX_PER_BLOCK + 1) * sizeof(int);
 struct IndexBlock
@@ -41,7 +46,6 @@ struct IndexBlock
     int keys[MAX_INDEX_PER_BLOCK];
     int childrenPtr[MAX_INDEX_PER_BLOCK + 1];
     int count; // Number of entries in the block
-private:
     char padding[IndexBlockPadding];
 };
 

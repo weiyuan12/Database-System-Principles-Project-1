@@ -5,6 +5,7 @@
 #define STORAGE_H
 
 #include "./constants.h"
+#include <vector>
 // #include <cassert>
 
 class Storage
@@ -16,11 +17,12 @@ private:
 public:
     Storage(std::fstream *fileHandle);
     // Constructor taking a file handle
-    void addBlock(const char *blockData);
+    void addBlock(char *blockData);
     ~Storage();
     void deleteBlock(char *block);
     void readBlock(char *readto, int blockNumber);
     void writeBlock(int blockNumber, const char *blockData);
+    void bulkWrite(std::vector<char *> &blocks);
 };
 
 Storage::Storage(std::fstream *fileHandle)
@@ -29,7 +31,7 @@ Storage::Storage(std::fstream *fileHandle)
     ptr = fileHandle;
 }
 
-void Storage::addBlock(const char *blockData)
+void Storage::addBlock(char *blockData)
 {
     ptr->seekg(0, std::ios::end);      // Move the file pointer to the end of the file
     ptr->write(blockData, BLOCK_SIZE); // Write the block data to the file
@@ -60,6 +62,19 @@ void Storage::writeBlock(int blockNumber, const char *blockData)
 
     // Flush the file buffer to ensure the data is written immediately
     ptr->flush();
+}
+
+void Storage::bulkWrite(std::vector<char *> &blocks)
+{
+    for (int i = 0; i < blocks.size(); i++)
+    {
+        if (strlen(blocks[i]) != BLOCK_SIZE)
+        {
+            std::cerr << "Error: Block " << i << " is not " << BLOCK_SIZE << " bytes." << std::endl;
+            continue; // Skip this block
+        }
+        addBlock(blocks[i]);
+    }
 }
 
 Storage::~Storage()

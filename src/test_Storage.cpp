@@ -18,7 +18,7 @@ void testAddBlock()
     Storage storageObj = Storage(&file);
 
     // Define a block of data to add
-    const char blockData[BLOCK_SIZE] = "This is a test block of data.";
+    char blockData[BLOCK_SIZE] = "This is a test block of data.";
 
     // Add the block to the storage
     storageObj.addBlock(blockData);
@@ -54,9 +54,9 @@ void testAddMultipleBlocks()
     Storage storageObj = Storage(&file);
 
     // Define multiple blocks of data to add
-    const char blockData1[BLOCK_SIZE] = "This is the first test block of data.";
-    const char blockData2[BLOCK_SIZE] = "This is the second test block of data.";
-    const char blockData3[BLOCK_SIZE] = "This is the third test block of data.";
+    char blockData1[BLOCK_SIZE] = "This is the first test block of data.";
+    char blockData2[BLOCK_SIZE] = "This is the second test block of data.";
+    char blockData3[BLOCK_SIZE] = "This is the third test block of data.";
 
     // Add the blocks to the storage
     storageObj.addBlock(blockData1);
@@ -102,7 +102,7 @@ void testAddBlockWithPersistentFile()
     Storage storageObj = Storage(&file);
 
     // Define a block of data to add
-    const char blockData[BLOCK_SIZE] = "This is a test block of data for persistent file.";
+    char blockData[BLOCK_SIZE] = "This is a test block of data for persistent file.";
 
     // Add the block to the storage
     storageObj.addBlock(blockData);
@@ -147,9 +147,9 @@ void testReadingSecondBlock()
     Storage storageObj = Storage(&file);
 
     // Define multiple blocks of data to add
-    const char blockData1[BLOCK_SIZE] = "This is the first test block of data.";
-    const char blockData2[BLOCK_SIZE] = "This is the second test block of data.";
-    const char blockData3[BLOCK_SIZE] = "This is the third test block of data.";
+    char blockData1[BLOCK_SIZE] = "This is the first test block of data.";
+    char blockData2[BLOCK_SIZE] = "This is the second test block of data.";
+    char blockData3[BLOCK_SIZE] = "This is the third test block of data.";
 
     // Add the blocks to the storage
     storageObj.addBlock(blockData1);
@@ -179,7 +179,7 @@ int main()
     std::cout << "Running storage tests..." << std::endl;
     testAddBlock();
     testAddMultipleBlocks();
-    // testAddBlockWithPersistentFile();
+    testAddBlockWithPersistentFile();
     testReadingSecondBlock();
     return 0;
 }

@@ -2,6 +2,7 @@
 #include <cstring> // Add this line to include the <cstring> header file
 #include "./Storage.cpp"
 #include "./constants.h"
+#include <vector>
 
 #ifndef DATAFILE_H
 #define DATAFILE_H
@@ -18,6 +19,8 @@ public:
     void addGameEntryBlock(GameEntryBlock *block);
     void readGameEntryBlock(GameEntryBlock *gameEntryBlock, int blockNumber);
     void writeGameEntryBlock(int blockNumber, GameEntryBlock *block);
+    void writeAllGameEntryBlocks(std::vector<GameEntryBlock> &blocks);
+    void writeAllGameEntries(std::vector<GameEntry> &blocks);
     DataFile(std::fstream *file);
     DataFile(Storage *storage);
     ~DataFile();
@@ -47,6 +50,43 @@ void DataFile::writeGameEntryBlock(int blockNumber, GameEntryBlock *block)
 {
     char *blockData = reinterpret_cast<char *>(block);
     storage->writeBlock(blockNumber, blockData);
+}
+
+void DataFile::writeAllGameEntryBlocks(std::vector<GameEntryBlock> &blocks)
+{
+    for (int i = 0; i < blocks.size(); i++)
+    {
+        addGameEntryBlock(&blocks[i]);
+    }
+}
+
+void GameEntriesToBlocks(std::vector<GameEntry> &blocks, std::vector<GameEntryBlock> &gameEntryBlocks)
+{
+    int t = blocks.size();
+    // Fast cieling division
+    int totalBlocks = (blocks.size() + MAX_ENTRIES_PER_BLOCK - 1) / MAX_ENTRIES_PER_BLOCK;
+
+    for (int i = 0; i < totalBlocks; i++)
+    {
+        GameEntryBlock block;
+        block.count = 0;
+
+        // Copy entries to the current block
+        while (block.count < MAX_ENTRIES_PER_BLOCK && i * MAX_ENTRIES_PER_BLOCK + block.count < blocks.size())
+        {
+            memcpy(&block.entries[block.count], &blocks[i * MAX_ENTRIES_PER_BLOCK + block.count], sizeof(GameEntry));
+            ++block.count;
+        }
+
+        gameEntryBlocks.push_back(block);
+    }
+}
+
+void DataFile::writeAllGameEntries(std::vector<GameEntry> &blocks)
+{
+    std::vector<GameEntryBlock> gameEntryBlocks;
+    GameEntriesToBlocks(blocks, gameEntryBlocks);
+    writeAllGameEntryBlocks(gameEntryBlocks);
 }
 
 DataFile::DataFile(std::fstream *file)

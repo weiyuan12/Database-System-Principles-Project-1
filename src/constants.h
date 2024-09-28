@@ -3,10 +3,11 @@
 #define CONSTANTS_H
 
 #include <ctime>
+#include <bitset>
 
 struct GameEntry // 40 bytes
 {
-    std::time_t GAME_DATE_EST; // 8 bytes
+    std::time_t GAME_DATE_EST; // 8 bytes // seems to become 4 bytes when running
     int TEAM_ID_home;          // 4 bytes
     int PTS_home;              // 4 bytes
     float FG_PCT_home;         // Key // 4 bytes
@@ -27,8 +28,9 @@ struct GameEntryBlock
 {
     GameEntry entries[MAX_ENTRIES_PER_BLOCK];
     int count; // Number of entries in the block
+
 private:
-    char padding[GameEntryBlockPadding];
+    char padding[GameEntryBlockPadding] = {"a"};
 };
 
 const int t = sizeof(GameEntryBlock);

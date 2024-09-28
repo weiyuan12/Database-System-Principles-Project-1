@@ -11,23 +11,11 @@ class BPTreeNode
 private:
 public:
     IndexBlock *indexBlock;
-    // These values need to be stored in the block
-    // int numKeys;                              // Number of entries in the node
-    // int keys[MAX_INDEX_PER_BLOCK];            // Array of keys
-    // int childrenPtr[MAX_INDEX_PER_BLOCK + 1]; // Array of child keys
-    // At the leaf level, the childrenPtr will be a pointer to the data block
-    // Up to you to use sparse or dense index
-    // - Sparse index: will allow more data to be stored
-    // - Dense index: will search in O(1) instead of O(entries per block)
-
-    // These values do not need to be stored in the block
-    // We may not need depth as the depth of the tree can be calculated from the root node
-    // All leaf nodes will have the same depth
-    int depth; // Depth of the node in the tree
+    int minKey;
 
     BPTreeNode(void *buffer);
-
     BPTreeNode(int n, int keys[], int childrenPtr[]);
+    BPTreeNode();
     void serialize(void *buffer);
 };
 
@@ -55,6 +43,12 @@ BPTreeNode::BPTreeNode(int n, int keys[], int childrenPtr[])
     indexBlock->count = n;
     memcpy(indexBlock->keys, keys, MAX_INDEX_PER_BLOCK * sizeof(int));
     memcpy(indexBlock->childrenPtr, childrenPtr, (MAX_INDEX_PER_BLOCK + 1) * sizeof(int));
+}
+
+BPTreeNode::BPTreeNode()
+{
+    indexBlock = new IndexBlock();
+    indexBlock->count = 0;
 }
 
 void BPTreeNode::serialize(void *buffer)

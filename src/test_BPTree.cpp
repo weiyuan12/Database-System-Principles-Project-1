@@ -37,7 +37,7 @@ void testBPTreeInitialization()
 
     BPTree bptree = BPTree(&storage);
 
-    assert(bptree.depth == 5);
+    assert(bptree.metadata->depth == 5);
     assert(bptree.root->indexBlock->count == 3);
     assert(bptree.root->indexBlock->keys[0] == 1);
     assert(bptree.root->indexBlock->keys[1] == 2);
@@ -53,6 +53,58 @@ void testBPTreeInitialization()
     delete[] blockData;
     file.close();
     std::remove("testBPTreeInitialization");
+}
+
+void testBulkWriteToStorage()
+{
+    // Create a temporary file for testing
+    std::fstream file("testBulkWriteToStorage", std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
+    if (!file)
+    {
+        std::cerr << "Failed to create temporary file" << std::endl;
+        return;
+    }
+
+    // Create a storage object with the temporary file
+    Storage storage = Storage(&file);
+
+    bool verbose = true;
+    std::vector<GameEntryBlock> gameEntryBlocks = std::vector<GameEntryBlock>();
+    for (int i = 0; i < MAX_INDEX_PER_BLOCK * 100; i++)
+    {
+        GameEntryBlock block = GameEntryBlock();
+        block.count = 0;
+        for (int j = 0; j < MAX_ENTRIES_PER_BLOCK; j++)
+        {
+            GameEntry entry;
+            entry.FG_PCT_home = (i * MAX_ENTRIES_PER_BLOCK + j) * 10;
+            block.entries[j] = entry;
+            block.count++;
+        }
+        gameEntryBlocks.push_back(block);
+    }
+
+    std::vector<BPTreeNode> allBPTreeNodes = std::vector<BPTreeNode>();
+    int depth = 0;
+    int rootIndex = 0;
+    buildBPTree(gameEntryBlocks, allBPTreeNodes, &depth, &rootIndex);
+
+    bptreeBlocksToStorage(allBPTreeNodes, depth, rootIndex, &storage);
+
+    BPTree bptree = BPTree(&storage);
+
+    std::cout << "B+ Tree depth: " << bptree.metadata->depth << std::endl;
+    std::cout << "B+ Tree root index: " << bptree.metadata->rootIndex << std::endl;
+
+    file.close();
+
+    std::fstream file2("testBulkWriteToStorage", std::ios::binary | std::ios::in | std::ios::out);
+
+    Storage storage2 = Storage(&file2);
+    BPTree bptree2 = BPTree(&storage2);
+
+    std::cout << "B+ Tree depth: " << bptree2.metadata->depth << std::endl;
+    std::cout << "B+ Tree root index: " << bptree2.metadata->rootIndex << std::endl;
 }
 
 void testBPTree()
@@ -565,12 +617,17 @@ void testBuildBPTree()
     }
 
     std::vector<BPTreeNode> allBPTreeNodes = std::vector<BPTreeNode>();
-    buildBPTree(gameEntryBlocks, allBPTreeNodes);
+    int depth = 0;
+    int rootIndex = 0;
+    buildBPTree(gameEntryBlocks, allBPTreeNodes, &depth, &rootIndex);
 
     if (verbose)
     {
         std::cout << "=== All B+ Tree Nodes: ===" << std::endl;
         verbosePrinter(allBPTreeNodes, 0);
+
+        std::cout << "Depth: " << depth << std::endl;
+        std::cout << "Root index: " << rootIndex << std::endl;
     }
 }
 
@@ -591,9 +648,10 @@ void testBuildIndexLevel()
 int main()
 {
     // testBPTree();
+    testBulkWriteToStorage();
     // testBuildLeafLevel();
     // testBuildIndexLevel();
     // testBuildOneLeafAndOneLevel();
-    testBuildBPTree();
+    // testBuildBPTree();
     return 0;
 }

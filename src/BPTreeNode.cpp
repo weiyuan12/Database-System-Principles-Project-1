@@ -51,17 +51,12 @@ BPTreeNode::BPTreeNode()
     indexBlock->count = 0;
 }
 
+// this function might be useless
 void BPTreeNode::serialize(void *buffer)
 {
     // Cast the buffer pointer to the appropriate type
     char *block = static_cast<char *>(buffer);
 
-    // Write the number of entries to the block
-    *reinterpret_cast<int *>(block) = indexBlock->count;
-
-    // Write the keys to the block
-    memcpy(block + sizeof(int), indexBlock->keys, MAX_INDEX_PER_BLOCK * sizeof(int));
-
-    // Write the child keys to the block
-    memcpy(block + sizeof(int) + MAX_INDEX_PER_BLOCK * sizeof(int), indexBlock->childrenPtr, (MAX_INDEX_PER_BLOCK + 1) * sizeof(int));
+    // Cast the indexBlock to a buffer
+    memcpy(block, indexBlock, sizeof(IndexBlock));
 }

@@ -9,9 +9,10 @@
 
 int main()
 {
-    DataFileReader reader("../data/game_short.txt");
-    // DataFileReader reader("../data/games.txt");
+    // DataFileReader reader("../data/game_short.txt");
+    DataFileReader reader("../data/games.txt");
     std::vector<GameEntry> games = reader.readData();
+    bool verbose = false;
 
     // Output the parsed data
     // for (const auto &game : games)
@@ -115,33 +116,35 @@ int main()
             const GameEntry &readEntry = readBlock.entries[i];
             const GameEntry &expectedEntry = expectedBlock.entries[i];
 
-            std::cout << "  Expected Game Date: " << std::put_time(std::localtime(&expectedEntry.GAME_DATE_EST), "%d/%m/%Y")
-                      << ", Read Game Date: " << std::put_time(std::localtime(&readEntry.GAME_DATE_EST), "%d/%m/%Y") << std::endl;
+            if (verbose)
+            {
+                std::cout << "  Expected Game Date: " << std::put_time(std::localtime(&expectedEntry.GAME_DATE_EST), "%d/%m/%Y")
+                          << ", Read Game Date: " << std::put_time(std::localtime(&readEntry.GAME_DATE_EST), "%d/%m/%Y") << std::endl;
 
-            std::cout << "  Expected Team ID Home: " << expectedEntry.TEAM_ID_home
-                      << ", Read Team ID Home: " << readEntry.TEAM_ID_home << std::endl;
+                std::cout << "  Expected Team ID Home: " << expectedEntry.TEAM_ID_home
+                          << ", Read Team ID Home: " << readEntry.TEAM_ID_home << std::endl;
 
-            std::cout << "  Expected Points Home: " << expectedEntry.PTS_home
-                      << ", Read Points Home: " << readEntry.PTS_home << std::endl;
+                std::cout << "  Expected Points Home: " << expectedEntry.PTS_home
+                          << ", Read Points Home: " << readEntry.PTS_home << std::endl;
 
-            std::cout << "  Expected FG% Home: " << expectedEntry.FG_PCT_home
-                      << ", Read FG% Home: " << readEntry.FG_PCT_home << std::endl;
+                std::cout << "  Expected FG% Home: " << expectedEntry.FG_PCT_home
+                          << ", Read FG% Home: " << readEntry.FG_PCT_home << std::endl;
 
-            std::cout << "  Expected FT% Home: " << expectedEntry.FT_PCT_home
-                      << ", Read FT% Home: " << readEntry.FT_PCT_home << std::endl;
+                std::cout << "  Expected FT% Home: " << expectedEntry.FT_PCT_home
+                          << ", Read FT% Home: " << readEntry.FT_PCT_home << std::endl;
 
-            std::cout << "  Expected FG3% Home: " << expectedEntry.FG3_PCT_home
-                      << ", Read FG3% Home: " << readEntry.FG3_PCT_home << std::endl;
+                std::cout << "  Expected FG3% Home: " << expectedEntry.FG3_PCT_home
+                          << ", Read FG3% Home: " << readEntry.FG3_PCT_home << std::endl;
 
-            std::cout << "  Expected AST Home: " << expectedEntry.AST_home
-                      << ", Read AST Home: " << readEntry.AST_home << std::endl;
+                std::cout << "  Expected AST Home: " << expectedEntry.AST_home
+                          << ", Read AST Home: " << readEntry.AST_home << std::endl;
 
-            std::cout << "  Expected REB Home: " << expectedEntry.REB_home
-                      << ", Read REB Home: " << readEntry.REB_home << std::endl;
+                std::cout << "  Expected REB Home: " << expectedEntry.REB_home
+                          << ", Read REB Home: " << readEntry.REB_home << std::endl;
 
-            std::cout << "  Expected Home Team Wins: " << (expectedEntry.HOME_TEAM_WINS ? "Yes" : "No")
-                      << ", Read Home Team Wins: " << (readEntry.HOME_TEAM_WINS ? "Yes" : "No") << std::endl;
-
+                std::cout << "  Expected Home Team Wins: " << (expectedEntry.HOME_TEAM_WINS ? "Yes" : "No")
+                          << ", Read Home Team Wins: " << (readEntry.HOME_TEAM_WINS ? "Yes" : "No") << std::endl;
+            }
             assert(readEntry.GAME_DATE_EST == expectedEntry.GAME_DATE_EST);
             assert(readEntry.TEAM_ID_home == expectedEntry.TEAM_ID_home);
             assert(readEntry.PTS_home == expectedEntry.PTS_home);

@@ -13,6 +13,7 @@ class Storage
 private:
     /* data */
     std::fstream *ptr;
+    int readCount = 0;
 
 public:
     Storage(std::fstream *fileHandle);
@@ -21,6 +22,7 @@ public:
     ~Storage();
     void deleteBlock(char *block);
     void readBlock(char *readto, int blockNumber);
+    int getReadCount();
     void writeBlock(int blockNumber, const char *blockData);
     void bulkWrite(std::vector<char *> &blocks);
 };
@@ -40,6 +42,7 @@ void Storage::addBlock(char *blockData)
 
 void Storage::readBlock(char *readTo, int blockNumber)
 {
+    readCount++;
     // Calculate the position of the block
     long int position = blockNumber * BLOCK_SIZE;
 
@@ -47,6 +50,11 @@ void Storage::readBlock(char *readTo, int blockNumber)
     ptr->seekp(position, std::ios::beg);
 
     ptr->read(readTo, BLOCK_SIZE);
+}
+
+int Storage::getReadCount()
+{
+    return readCount;
 }
 
 void Storage::writeBlock(int blockNumber, const char *blockData)

@@ -105,6 +105,9 @@ void testBulkWriteToStorage()
 
     std::cout << "B+ Tree depth: " << bptree2.metadata->depth << std::endl;
     std::cout << "B+ Tree root index: " << bptree2.metadata->rootIndex << std::endl;
+
+    int datablock = bptree2.find(30000);
+    std::cout << "Data block: " << datablock << std::endl;
 }
 
 void testBPTree()
@@ -645,10 +648,29 @@ void testBuildIndexLevel()
     // testBuildIndexNodeBIGBIGBIG();
 }
 
+void dummy()
+{
+    std::fstream file("testBulkWriteToStorage", std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
+    if (!file)
+    {
+        std::cerr << "Failed to create temporary file" << std::endl;
+        return;
+    }
+
+    // Create a storage object with the temporary file
+    Storage storage = Storage(&file);
+
+    char *blockData = new char[BLOCK_SIZE];
+    storage.readBlock(blockData, 116);
+    blockData;
+}
+
 int main()
 {
     // testBPTree();
     testBulkWriteToStorage();
+    // dummy();
+
     // testBuildLeafLevel();
     // testBuildIndexLevel();
     // testBuildOneLeafAndOneLevel();

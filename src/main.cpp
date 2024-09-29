@@ -134,7 +134,7 @@ int main()
             break;
         default:
             std::cerr << "Invalid action." << std::endl;
-            break;
+            return 1;
         }
     }
 }

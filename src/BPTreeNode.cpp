@@ -21,20 +21,11 @@ public:
 
 BPTreeNode::BPTreeNode(void *buffer)
 {
-    // Create a buffer to simulate a block of memory
+    // Cast the buffer pointer to the appropriate type
     char *block = static_cast<char *>(buffer);
 
-    // Create a BPTreeNode object
-    indexBlock = new IndexBlock();
-
-    // Read the number of entries from the block
-    indexBlock->count = *reinterpret_cast<int *>(block);
-
-    // Read the keys from the block
-    memcpy(indexBlock->keys, block + sizeof(int), MAX_INDEX_PER_BLOCK * sizeof(int));
-
-    // Read the child keys from the block
-    memcpy(indexBlock->childrenPtr, block + sizeof(int) + MAX_INDEX_PER_BLOCK * sizeof(int), (MAX_INDEX_PER_BLOCK + 1) * sizeof(int));
+    // Cast the buffer to an indexBlock
+    indexBlock = reinterpret_cast<IndexBlock *>(block);
 }
 
 BPTreeNode::BPTreeNode(int n, int keys[], int childrenPtr[])
@@ -51,17 +42,12 @@ BPTreeNode::BPTreeNode()
     indexBlock->count = 0;
 }
 
+// this function might be useless
 void BPTreeNode::serialize(void *buffer)
 {
     // Cast the buffer pointer to the appropriate type
     char *block = static_cast<char *>(buffer);
 
-    // Write the number of entries to the block
-    *reinterpret_cast<int *>(block) = indexBlock->count;
-
-    // Write the keys to the block
-    memcpy(block + sizeof(int), indexBlock->keys, MAX_INDEX_PER_BLOCK * sizeof(int));
-
-    // Write the child keys to the block
-    memcpy(block + sizeof(int) + MAX_INDEX_PER_BLOCK * sizeof(int), indexBlock->childrenPtr, (MAX_INDEX_PER_BLOCK + 1) * sizeof(int));
+    // Cast the indexBlock to a buffer
+    memcpy(block, indexBlock, sizeof(IndexBlock));
 }

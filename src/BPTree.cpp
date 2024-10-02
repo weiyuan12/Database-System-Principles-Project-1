@@ -12,6 +12,7 @@
 #include "Storage.cpp"
 #include <algorithm>
 #include <cassert>
+#include <unordered_map>
 
 class BPTree
 {
@@ -19,12 +20,16 @@ private:
     void readMetadata(void *buffer);
 
 public:
-    int depth;        // Depth of the B-tree
+    BPTreeMetadata *metadata;
     BPTreeNode *root; // Pointer to the root node of the B-tree
+    BPTreeNode *cache;
     Storage *storage;
 
     int find(int key);
+    void findRange(int startKey, int endKey, std::vector<int> &result);
     void bulkLoad(/*args*/);
+    void bulkWriteToStorage(std::vector<BPTreeNode> &allBPTreeNodes, int depth, int rootIndex);
+
     BPTree(Storage *storage);
     BPTree();
     ~BPTree();
@@ -34,31 +39,126 @@ public:
 // We can treat -1 as cannot find the key
 int BPTree::find(int key)
 {
-    return 0;
+    BPTreeNode *currentNode = root; // Start from the root node
+    int currentDepth = 0;           // Initialize the current depth to 0
+
+    // Traverse the B+ tree until the leaf level
+    while (currentDepth <= metadata->depth)
+    {
+        int i = 0;
+        if (currentDepth == metadata->depth)
+        {
+            // Find the appropriate child pointer
+            while (i < currentNode->indexBlock->count && key > currentNode->indexBlock->keys[i])
+            {
+                i++;
+            }
+            return currentNode->indexBlock->childrenPtr[i];
+        }
+
+        // Find the appropriate child pointer
+        while (i < currentNode->indexBlock->count && key >= currentNode->indexBlock->keys[i])
+        {
+            i++;
+        }
+
+        // Read the next node from storage
+        char *buffer = new char[BLOCK_SIZE];
+        storage->readBlock(buffer, currentNode->indexBlock->childrenPtr[i] + 1); // +1 to skip the metadata block
+        BPTreeNode *nextNode = new BPTreeNode(buffer);
+        currentNode = nextNode; // Move to the next node
+        currentDepth++;         // Increment the depth
+    }
+    return -1; // Return -1 if the key is not found
 }
 
-// TODO: Implement Bulk Load
-void BPTree::bulkLoad(/*args*/)
+void BPTree::findRange(int startKey, int endKey, std::vector<int> &result)
 {
-    // Implement bulk load here
+    BPTreeNode *currentNode = root; // Start from the root node
+    int currentDepth = 0;           // Initialize the current depth to 0
+
+    // Traverse the B+ tree until the leaf level
+    while (currentDepth <= metadata->depth)
+    {
+        int i = 0;
+        if (currentDepth == metadata->depth)
+        {
+            // Find the appropriate child pointer
+            while (i < currentNode->indexBlock->count && startKey > currentNode->indexBlock->keys[i])
+            {
+                i++;
+            }
+            // Traverse the leaf nodes to find the keys in the range
+            while (currentNode->indexBlock->keys[i] <= endKey)
+            {
+                result.push_back(currentNode->indexBlock->childrenPtr[i]);
+                i++;
+                if (i == currentNode->indexBlock->count)
+                {
+                    char *buffer = new char[BLOCK_SIZE];
+                    if (currentNode->indexBlock->childrenPtr[MAX_INDEX_PER_BLOCK] == -1)
+                    {
+                        return;
+                    }
+                    storage->readBlock(buffer, currentNode->indexBlock->childrenPtr[MAX_INDEX_PER_BLOCK] + 1); // +1 to skip the metadata block
+                    BPTreeNode *nextNode = new BPTreeNode(buffer);
+                    currentNode = nextNode; // Move to the next node
+                    i = 0;
+                }
+            }
+        }
+
+        // Find the appropriate child pointer
+        while (i < currentNode->indexBlock->count && startKey >= currentNode->indexBlock->keys[i])
+        {
+            i++;
+        }
+
+        // Read the next node from storage
+        char *buffer = new char[BLOCK_SIZE];
+        storage->readBlock(buffer, currentNode->indexBlock->childrenPtr[i] + 1); // +1 to skip the metadata block
+        BPTreeNode *nextNode = new BPTreeNode(buffer);
+        currentNode = nextNode; // Move to the next node
+        currentDepth++;         // Increment the depth
+    }
+}
+
+// this is very buggy
+void BPTree::bulkWriteToStorage(std::vector<BPTreeNode> &allBPTreeNodes, int depth, int rootIndex)
+{
+    // Write the metadata to the first block
+    BPTreeMetadata metadata;
+    metadata.depth = depth;
+    metadata.rootIndex = rootIndex;
+    char metadataBuffer[BLOCK_SIZE];
+
+    memcpy(metadataBuffer, &metadata, sizeof(BPTreeMetadata));
+    storage->addBlock(metadataBuffer);
+
+    // Write the B-tree nodes to the subsequent blocks
+    for (int i = 0; i < allBPTreeNodes.size(); i++)
+    {
+        char *nodeBuffer = new char[BLOCK_SIZE];
+        allBPTreeNodes[i].serialize(nodeBuffer);
+        storage->addBlock(nodeBuffer);
+    }
 }
 
 void BPTree::readMetadata(void *buffer)
 {
-    // Cast the buffer pointer to the appropriate type
-    char *block = static_cast<char *>(buffer);
-
-    // Read the depth of the B-tree from the block
-    depth = *reinterpret_cast<int *>(block);
-
-    // Read the root node from the block
+    // Dead
+    metadata = new BPTreeMetadata();
+    memcpy(metadata, buffer, sizeof(BPTreeMetadata));
+    root = new BPTreeNode();
+    root->indexBlock = new IndexBlock();
     char *rootBuffer = new char[BLOCK_SIZE];
-    storage->readBlock(rootBuffer, 1); // first block is metadata
-    root = new BPTreeNode(rootBuffer);
+    storage->readBlock(rootBuffer, metadata->rootIndex);
+    root->serialize(rootBuffer);
 }
 
 BPTree::BPTree()
 {
+    // this is not the way to use BPTree
 }
 
 BPTree::BPTree(Storage *storage)
@@ -66,7 +166,14 @@ BPTree::BPTree(Storage *storage)
     this->storage = storage;
     char *metadataBuffer = new char[BLOCK_SIZE];
     storage->readBlock(metadataBuffer, 0);
-    readMetadata(metadataBuffer);
+    this->metadata = reinterpret_cast<BPTreeMetadata *>(metadataBuffer);
+
+    // Read the root node
+    this->root = new BPTreeNode();
+    this->root->indexBlock = new IndexBlock();
+    char *rootBuffer = new char[BLOCK_SIZE];
+    storage->readBlock(rootBuffer, metadata->rootIndex);
+    this->root->indexBlock = reinterpret_cast<IndexBlock *>(rootBuffer);
 }
 
 BPTree::~BPTree()
@@ -82,8 +189,6 @@ void buildLevel(int offset, std::vector<BPTreeNode> &childrenPtrs, std::vector<B
     // | leaf children | ~~ | 2 lvl children | childrenPtrs | parentBlocks |
     // +---------------+ ~~ +----------------+--------------+--------------+
     // |<------------- offset -------------->|
-    //
-    //
 
     int numChildren = childrenPtrs.size();
     int numIndexBlocks = ceil((double)numChildren / (MAX_INDEX_PER_BLOCK + 1));
@@ -186,7 +291,7 @@ void buildLeafLevel(std::vector<int> &gameEntryBlocks, std::vector<BPTreeNode> &
     }
 }
 
-void buildBPTree(std::vector<GameEntryBlock> &gameEntryBlocks, std::vector<BPTreeNode> &allBPTreeNodes)
+void buildBPTree(std::vector<GameEntryBlock> &gameEntryBlocks, std::vector<BPTreeNode> &allBPTreeNodes, int *depth, int *rootIndex)
 {
     // Assert that gameEntryBlocks is sorted
     assert(std::is_sorted(gameEntryBlocks.begin(), gameEntryBlocks.end(), [](const GameEntryBlock &a, const GameEntryBlock &b)
@@ -201,7 +306,7 @@ void buildBPTree(std::vector<GameEntryBlock> &gameEntryBlocks, std::vector<BPTre
     {
         for (int j = 0; j < gameEntryBlocks[i].count; j++)
         {
-            allChildrenKeys.push_back(gameEntryBlocks[i].entries[j].FG_PCT_home);
+            allChildrenKeys.push_back(static_cast<int>(round(gameEntryBlocks[i].entries[j].FG_PCT_home * 1000)));
         }
     }
 
@@ -213,11 +318,10 @@ void buildBPTree(std::vector<GameEntryBlock> &gameEntryBlocks, std::vector<BPTre
     }
 
     int offset = 0;
-    int depth = 0;
     std::vector<BPTreeNode> currentChildren = leafPBTreeNodes;
     while (currentChildren.size() > 1)
     {
-        depth++;
+        (*depth)++;
         std::vector<BPTreeNode> parentBlocks = std::vector<BPTreeNode>();
         int sizeCurrentChildren = currentChildren.size();
         buildLevel(offset, currentChildren, parentBlocks);
@@ -227,5 +331,32 @@ void buildBPTree(std::vector<GameEntryBlock> &gameEntryBlocks, std::vector<BPTre
         {
             allBPTreeNodes.push_back(currentChildren[i]);
         }
+    }
+
+    *rootIndex = allBPTreeNodes.size();
+}
+
+void bptreeBlocksToStorage(std::vector<BPTreeNode> &allBPTreeNodes, int depth, int rootIndex, Storage *storage)
+{
+    // Write the metadata to the first block
+    BPTreeMetadata metadata;
+    metadata.depth = depth;
+    metadata.rootIndex = rootIndex;
+    char metadataBuffer[BLOCK_SIZE];
+
+    memcpy(metadataBuffer, &metadata, sizeof(BPTreeMetadata));
+    storage->addBlock(metadataBuffer);
+
+    std::vector<IndexBlock> allIndexBlocks = std::vector<IndexBlock>();
+    for (int i = 0; i < allBPTreeNodes.size(); i++)
+    {
+        allIndexBlocks.push_back(*allBPTreeNodes[i].indexBlock);
+    }
+
+    for (int i = 0; i < allIndexBlocks.size(); i++)
+    {
+        char *nodeBuffer = new char[BLOCK_SIZE];
+        memcpy(nodeBuffer, &allIndexBlocks[i], sizeof(IndexBlock));
+        storage->addBlock(nodeBuffer);
     }
 }

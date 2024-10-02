@@ -233,7 +233,6 @@ void balanceLastNode(std::vector<BPTreeNode> &leafPBTreeNodes)
     int lastNodeSize = lastNode->indexBlock->count;
     if(lastNodeSize < (MAX_INDEX_PER_BLOCK + 1) / 2 && leafPBTreeNodes.size() > 1)
     {
-        std::cout<< "Balancing" << std:: endl;
         int keysToMove = (MAX_INDEX_PER_BLOCK + 1) / 2 - lastNodeSize;
         
         std::copy( lastNode->indexBlock->keys,  lastNode->indexBlock->keys + lastNode->indexBlock->count, lastNode->indexBlock->keys + keysToMove );
@@ -287,9 +286,6 @@ void buildLeafLevel(std::vector<int> &gameEntryBlocks, std::vector<BPTreeNode> &
         }
         leafPBTreeNodes.push_back(bPTreeNode);
 
-        std::cout << "indexBlock count: " << leafPBTreeNodes.back().indexBlock->count << std::endl;
-        // if the last node has less than (n+1)/2 keys, rebalance keys from the secondLastNode
-
     }
 }
 
@@ -337,6 +333,11 @@ void buildBPTree(std::vector<GameEntryBlock> &gameEntryBlocks, std::vector<BPTre
     }
 
     *rootIndex = allBPTreeNodes.size();
+
+    for (int i = 0; i < allBPTreeNodes.size(); i++)
+    {
+        std::cout << "Node: " <<i  << " Count: "<< allBPTreeNodes[i].indexBlock->count << std::endl;
+    }
 }
 
 void bptreeBlocksToStorage(std::vector<BPTreeNode> &allBPTreeNodes, int depth, int rootIndex, Storage *storage)

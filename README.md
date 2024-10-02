@@ -9,4 +9,4 @@
 - - [ ] The Number of I/Os is correct for index and data blocks
 
 
-- [ ] Bug where if the block size is not 64, it will not work
+- [x] Bug where if the block size is not 64, it will not work

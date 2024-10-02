@@ -94,9 +94,58 @@ void makeRangeQuery(int startKey, int endKey)
     std::cout << "Total index blocks read: " << indexStorage.getReadCount() << std::endl;
 }
 
+void makeRangeQuery(int startKey, int endKey, std::vector<GameEntry> *gameEntries, int *dataStorageCalls, int *indexStorageCalls)
+{
+    std::fstream indexFile("index.dat", std::ios::binary | std::ios::in | std::ios::out);
+    std::fstream entriesFile("entries.dat", std::ios::binary | std::ios::in | std::ios::out);
+
+    if (!indexFile.is_open() || !entriesFile.is_open())
+    {
+        std::cerr << "Error opening files!" << std::endl;
+        return;
+    }
+
+    Storage indexStorage = Storage(&indexFile);
+    Storage entriesStorage = Storage(&entriesFile);
+
+    BPTree bptree = BPTree(&indexStorage);
+    DataFile dataFile = DataFile(&entriesStorage);
+
+    std::vector<int> result;
+    bptree.findRange(startKey, endKey, result);
+
+    for (int i = 0; i < result.size(); i++)
+    {
+        GameEntryBlock block;
+        int blockIndex = result[i] / MAX_ENTRIES_PER_BLOCK;
+        int positionInBlock = result[i] % MAX_ENTRIES_PER_BLOCK;
+
+        dataFile.readGameEntryBlock(&block, blockIndex);
+        GameEntry &entry = block.entries[positionInBlock];
+
+        gameEntries->push_back(entry);
+    }
+
+    *dataStorageCalls = entriesStorage.getReadCount();
+    *indexStorageCalls = indexStorage.getReadCount();
+}
+
 int main()
 {
     buildDB();
     makeRangeQuery(429, 430);
+    std::vector<GameEntry> gameEntries1;
+    int dataStorageCalls = 0;
+    int indexStorageCalls = 0;
+
+    makeRangeQuery(429, 430, &gameEntries1, &dataStorageCalls, &indexStorageCalls);
+    std::cout << "Total Game Entries: " << gameEntries1.size() << std::endl;
+    std::cout << "Data Storage Calls: " << dataStorageCalls << " | expected 275" << std::endl;
+    std::cout << "Index Storage Calls: " << indexStorageCalls << " | expected 9" << std::endl;
+    assert(gameEntries1.size() == 275);
+    assert(dataStorageCalls == 275);
+    assert(indexStorageCalls == 9);
+    std::cout << "Test passed" << std::endl;
+
     return 0;
 }

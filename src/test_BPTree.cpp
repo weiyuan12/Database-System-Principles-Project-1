@@ -159,7 +159,7 @@ void testBuildLeafLevelMedium()
 {
     bool verbose = true;
     std::vector<int> gameEntryBlocks = std::vector<int>();
-    for (int i = 0; i < MAX_INDEX_PER_BLOCK * 2; i++)
+    for (int i = 0; i < MAX_INDEX_PER_BLOCK * 2 + 5; i++)
     {
         gameEntryBlocks.push_back(i * 10);
     }
@@ -192,7 +192,7 @@ void testBuildLeafLevelMedium()
         std::cout << "Offset: " << offset << std::endl;
     }
 
-    assert(leafPBTreeNodes.size() == 2);
+    assert(leafPBTreeNodes.size() == 3);
     assert(leafPBTreeNodes[0].indexBlock->count == MAX_INDEX_PER_BLOCK);
     assert(leafPBTreeNodes[0].indexBlock->keys[0] == 0);
     assert(leafPBTreeNodes[0].indexBlock->keys[MAX_INDEX_PER_BLOCK - 1] == (MAX_INDEX_PER_BLOCK - 1) * 10);
@@ -637,7 +637,7 @@ void testBuildBPTree()
 void testBuildLeafLevel()
 {
     // testBuildLeafLevelSmall();
-    // testBuildLeafLevelMedium();
+    testBuildLeafLevelMedium();
     // testBuildLeafLevelBIG();
 }
 

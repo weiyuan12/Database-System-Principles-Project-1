@@ -119,16 +119,45 @@ void buildLevel(int offset, std::vector<BPTreeNode> &childrenPtrs, std::vector<B
     offset += numIndexBlocks;
 }
 
+void balanceLastNode(std::vector<BPTreeNode> &leafPBTreeNodes)
+{
+    BPTreeNode &lastNode = leafPBTreeNodes.back();
+    BPTreeNode &secondLastNode = leafPBTreeNodes[leafPBTreeNodes.size() - 2];
+
+    int lastNodeSize = lastNode.indexBlock->count;
+    if(lastNodeSize < (MAX_INDEX_PER_BLOCK + 1) / 2 && leafPBTreeNodes.size() > 1)
+    {
+        int keysToMove = (MAX_INDEX_PER_BLOCK + 1) / 2 - lastNodeSize;
+        
+        std::copy( lastNode.indexBlock->keys,  lastNode.indexBlock->keys + lastNode.indexBlock->count, lastNode.indexBlock->keys + keysToMove );
+        std::copy( lastNode.indexBlock->childrenPtr,  lastNode.indexBlock->childrenPtr + lastNode.indexBlock->count, lastNode.indexBlock->childrenPtr + keysToMove);
+
+        std::copy(secondLastNode.indexBlock->keys + (secondLastNode.indexBlock->count - keysToMove), secondLastNode.indexBlock->keys + (secondLastNode.indexBlock->count),  lastNode.indexBlock->keys);
+        std::copy(secondLastNode.indexBlock->childrenPtr + (secondLastNode.indexBlock->count - keysToMove), secondLastNode.indexBlock->childrenPtr + (secondLastNode.indexBlock->count),  lastNode.indexBlock->childrenPtr);
+        
+        std::fill(secondLastNode.indexBlock->keys + (secondLastNode.indexBlock->count - keysToMove), secondLastNode.indexBlock->keys + (secondLastNode.indexBlock->count), 0);
+        std::fill(secondLastNode.indexBlock->childrenPtr + (secondLastNode.indexBlock->count - keysToMove), secondLastNode.indexBlock->childrenPtr + (secondLastNode.indexBlock->count), 0);
+
+        lastNode.indexBlock->count = lastNode.indexBlock->count + keysToMove;
+        secondLastNode.indexBlock->count = secondLastNode.indexBlock->count - keysToMove;
+    }
+
+}
+
 void buildLeafLevel(std::vector<int> &gameEntryBlocks, std::vector<BPTreeNode> &leafPBTreeNodes)
 {
     // I think leaf nods no need offset
     int numChildren = gameEntryBlocks.size();
     int numIndexBlocks = ceil((double)numChildren / MAX_INDEX_PER_BLOCK);
     int index = 0;
+
+    // Creating leaf blocks
     for (int i = 0; i < numIndexBlocks; i++)
     {
         BPTreeNode bPTreeNode;
         bPTreeNode.indexBlock->count = 0;
+
+        // Creating keys and pointers in each leaf node
         for (int j = 0; j < MAX_INDEX_PER_BLOCK && index < numChildren; j++)
         {
             bPTreeNode.indexBlock->keys[j] = gameEntryBlocks[index];
@@ -136,7 +165,11 @@ void buildLeafLevel(std::vector<int> &gameEntryBlocks, std::vector<BPTreeNode> &
             bPTreeNode.indexBlock->count++;
             index++;
         }
+
+        // Maybe for indexing
         bPTreeNode.minKey = gameEntryBlocks[i * MAX_INDEX_PER_BLOCK]; // ?
+
+        // Last pointer points to next leafnode
         if (i + 1 < numIndexBlocks)
         {
             bPTreeNode.indexBlock->childrenPtr[MAX_INDEX_PER_BLOCK] = i + 1;
@@ -146,6 +179,10 @@ void buildLeafLevel(std::vector<int> &gameEntryBlocks, std::vector<BPTreeNode> &
             bPTreeNode.indexBlock->childrenPtr[MAX_INDEX_PER_BLOCK] = -1;
         }
         leafPBTreeNodes.push_back(bPTreeNode);
+
+        std::cout << "indexBlock count: " << leafPBTreeNodes.back().indexBlock->count << std::endl;
+        // if the last node has less than (n+1)/2 keys, rebalance keys from the secondLastNode
+        balanceLastNode(leafPBTreeNodes);
     }
 }
 

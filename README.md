@@ -2,7 +2,7 @@
 ## TODO:
 
 - [ ] Write a README.md file for how to run the code
-- [ ] Fix storage to use an internal cache to reduce disk I/O
+- [ ] Fix storage to use an internal cache to reduce disk I/O (like query with 0.450 instead of 450)
 - [ ] Fix the query key used in the query function
 - [ ] Varify the correctness of the code
 - - [ ] The results is correct

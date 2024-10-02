@@ -24,9 +24,9 @@ void buildDB()
 
     DataFile dataFile = DataFile(&entriesStorage);
 
-    DataFileReader reader("../data/games.txt");
+    // DataFileReader reader("../data/games.txt");
     // DataFileReader reader("../data/game_short_duplicate.txt");
-    // DataFileReader reader("../data/game_short.txt");
+    DataFileReader reader("../data/game_short.txt");
     std::vector<GameEntry> games = reader.readData();
 
     std::stable_sort(games.begin(), games.end(), [](const GameEntry &a, const GameEntry &b)

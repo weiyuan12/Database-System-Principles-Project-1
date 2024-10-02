@@ -226,25 +226,27 @@ void buildLevel(int offset, std::vector<BPTreeNode> &childrenPtrs, std::vector<B
 
 void balanceLastNode(std::vector<BPTreeNode> &leafPBTreeNodes)
 {
-    BPTreeNode &lastNode = leafPBTreeNodes.back();
-    BPTreeNode &secondLastNode = leafPBTreeNodes[leafPBTreeNodes.size() - 2];
 
-    int lastNodeSize = lastNode.indexBlock->count;
+    BPTreeNode *lastNode = &leafPBTreeNodes.back();
+    BPTreeNode *secondLastNode = &leafPBTreeNodes[leafPBTreeNodes.size() - 2];
+
+    int lastNodeSize = lastNode->indexBlock->count;
     if(lastNodeSize < (MAX_INDEX_PER_BLOCK + 1) / 2 && leafPBTreeNodes.size() > 1)
     {
+        std::cout<< "Balancing" << std:: endl;
         int keysToMove = (MAX_INDEX_PER_BLOCK + 1) / 2 - lastNodeSize;
         
-        std::copy( lastNode.indexBlock->keys,  lastNode.indexBlock->keys + lastNode.indexBlock->count, lastNode.indexBlock->keys + keysToMove );
-        std::copy( lastNode.indexBlock->childrenPtr,  lastNode.indexBlock->childrenPtr + lastNode.indexBlock->count, lastNode.indexBlock->childrenPtr + keysToMove);
+        std::copy( lastNode->indexBlock->keys,  lastNode->indexBlock->keys + lastNode->indexBlock->count, lastNode->indexBlock->keys + keysToMove );
+        std::copy( lastNode->indexBlock->childrenPtr,  lastNode->indexBlock->childrenPtr + lastNode->indexBlock->count, lastNode->indexBlock->childrenPtr + keysToMove);
 
-        std::copy(secondLastNode.indexBlock->keys + (secondLastNode.indexBlock->count - keysToMove), secondLastNode.indexBlock->keys + (secondLastNode.indexBlock->count),  lastNode.indexBlock->keys);
-        std::copy(secondLastNode.indexBlock->childrenPtr + (secondLastNode.indexBlock->count - keysToMove), secondLastNode.indexBlock->childrenPtr + (secondLastNode.indexBlock->count),  lastNode.indexBlock->childrenPtr);
+        std::copy(secondLastNode->indexBlock->keys + (secondLastNode->indexBlock->count - keysToMove), secondLastNode->indexBlock->keys + (secondLastNode->indexBlock->count),  lastNode->indexBlock->keys);
+        std::copy(secondLastNode->indexBlock->childrenPtr + (secondLastNode->indexBlock->count - keysToMove), secondLastNode->indexBlock->childrenPtr + (secondLastNode->indexBlock->count),  lastNode->indexBlock->childrenPtr);
         
-        std::fill(secondLastNode.indexBlock->keys + (secondLastNode.indexBlock->count - keysToMove), secondLastNode.indexBlock->keys + (secondLastNode.indexBlock->count), 0);
-        std::fill(secondLastNode.indexBlock->childrenPtr + (secondLastNode.indexBlock->count - keysToMove), secondLastNode.indexBlock->childrenPtr + (secondLastNode.indexBlock->count), 0);
+        std::fill(secondLastNode->indexBlock->keys + (secondLastNode->indexBlock->count - keysToMove), secondLastNode->indexBlock->keys + (secondLastNode->indexBlock->count), 0);
+        std::fill(secondLastNode->indexBlock->childrenPtr + (secondLastNode->indexBlock->count - keysToMove), secondLastNode->indexBlock->childrenPtr + (secondLastNode->indexBlock->count), 0);
 
-        lastNode.indexBlock->count = lastNode.indexBlock->count + keysToMove;
-        secondLastNode.indexBlock->count = secondLastNode.indexBlock->count - keysToMove;
+        lastNode->indexBlock->count = lastNode->indexBlock->count + keysToMove;
+        secondLastNode->indexBlock->count = secondLastNode->indexBlock->count - keysToMove;
     }
 
 }
@@ -287,7 +289,7 @@ void buildLeafLevel(std::vector<int> &gameEntryBlocks, std::vector<BPTreeNode> &
 
         std::cout << "indexBlock count: " << leafPBTreeNodes.back().indexBlock->count << std::endl;
         // if the last node has less than (n+1)/2 keys, rebalance keys from the secondLastNode
-        balanceLastNode(leafPBTreeNodes);
+
     }
 }
 
@@ -311,6 +313,7 @@ void buildBPTree(std::vector<GameEntryBlock> &gameEntryBlocks, std::vector<BPTre
     }
 
     buildLeafLevel(allChildrenKeys, leafPBTreeNodes);
+    balanceLastNode(leafPBTreeNodes);
 
     for (int i = 0; i < leafPBTreeNodes.size(); i++)
     {

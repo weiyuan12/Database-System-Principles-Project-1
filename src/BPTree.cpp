@@ -22,7 +22,6 @@ private:
 public:
     BPTreeMetadata *metadata;
     BPTreeNode *root; // Pointer to the root node of the B-tree
-    BPTreeNode *cache;
     Storage *storage;
 
     int find(int key);

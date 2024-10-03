@@ -4,7 +4,6 @@
 #include "BPTree.cpp"
 #include "DataFile.cpp"
 #include "DataFileReader.cpp"
-// #include "Storage.cpp"
 #include <cassert>
 
 void buildDB()
@@ -45,56 +44,57 @@ void buildDB()
     bptreeBlocksToStorage(allBPTreeNodes, depth, rootIndex, &indexStorage);
 }
 
-void makeRangeQuery(int startKey, int endKey)
-{
-    std::fstream indexFile("index.dat", std::ios::binary | std::ios::in | std::ios::out);
-    std::fstream entriesFile("entries.dat", std::ios::binary | std::ios::in | std::ios::out);
+// void makeRangeQuery(int startKey, int endKey)
+// {
+//     std::fstream indexFile("index.dat", std::ios::binary | std::ios::in | std::ios::out);
+//     std::fstream entriesFile("entries.dat", std::ios::binary | std::ios::in | std::ios::out);
 
-    if (!indexFile.is_open() || !entriesFile.is_open())
-    {
-        std::cerr << "Error opening files!" << std::endl;
-        return;
-    }
+//     if (!indexFile.is_open() || !entriesFile.is_open())
+//     {
+//         std::cerr << "Error opening files!" << std::endl;
+//         return;
+//     }
 
-    Storage indexStorage = Storage(&indexFile);
-    Storage entriesStorage = Storage(&entriesFile);
+//     Storage indexStorage = Storage(&indexFile);
+//     Storage entriesStorage = Storage(&entriesFile);
 
-    BPTree bptree = BPTree(&indexStorage);
-    DataFile dataFile = DataFile(&entriesStorage);
+//     BPTree bptree = BPTree(&indexStorage);
+//     DataFile dataFile = DataFile(&entriesStorage);
 
-    std::vector<int> result;
-    bptree.findRange(startKey, endKey, result);
-    std::cout << "count: " << result.size() << std::endl;
-    for (int i : result)
-    {
-        std::cout << "Index: " << i << std::endl;
-    }
+//     std::vector<int> result;
+//     bptree.findRange(startKey, endKey, result);
+//     std::cout << "count: " << result.size() << std::endl;
+//     for (int i : result)
+//     {
+//         std::cout << "Index: " << i << std::endl;
+//     }
 
-    for (int i = 0; i < result.size(); i++)
-    {
-        GameEntryBlock block;
-        int blockIndex = result[i] / MAX_ENTRIES_PER_BLOCK;
-        int positionInBlock = result[i] % MAX_ENTRIES_PER_BLOCK;
+//     for (int i = 0; i < result.size(); i++)
+//     {
+//         GameEntryBlock block;
+//         int blockIndex = result[i] / MAX_ENTRIES_PER_BLOCK;
+//         int positionInBlock = result[i] % MAX_ENTRIES_PER_BLOCK;
 
-        dataFile.readGameEntryBlock(&block, blockIndex);
-        const GameEntry &entry = block.entries[positionInBlock];
+//         dataFile.readGameEntryBlock(&block, blockIndex);
+//         const GameEntry &entry = block.entries[positionInBlock];
 
-        std::cout << entry.AST_home
-                  << " " << entry.FG_PCT_home
-                  << " " << entry.FT_PCT_home
-                  << " " << entry.FG3_PCT_home
-                  << " " << entry.REB_home
-                  << " " << entry.PTS_home
-                  << " " << entry.TEAM_ID_home
-                  << " " << entry.HOME_TEAM_WINS
-                  << std::endl;
-    }
+//         std::cout << entry.AST_home
+//                   << " " << entry.FG_PCT_home
+//                   << " " << entry.FT_PCT_home
+//                   << " " << entry.FG3_PCT_home
+//                   << " " << entry.REB_home
+//                   << " " << entry.PTS_home
+//                   << " " << entry.TEAM_ID_home
+//                   << " " << entry.HOME_TEAM_WINS
+//                   << std::endl;
+//     }
 
-    std::cout << "Total data blocks read: " << entriesStorage.getReadCount() << std::endl;
-    std::cout << "Total index blocks read: " << indexStorage.getReadCount() << std::endl;
-}
+//     std::cout << "Tree depth: " << bptree.metadata->depth << std::endl;
+//     std::cout << "Total data blocks read: " << entriesStorage.getReadCount() << std::endl;
+//     std::cout << "Total index blocks read: " << indexStorage.getReadCount() << std::endl;
+// }
 
-void makeRangeQuery(int startKey, int endKey, std::vector<GameEntry> *gameEntries, int *dataStorageCalls, int *indexStorageCalls)
+void makeRangeQuery(float startKey, float endKey, std::vector<GameEntry> *gameEntries, int *dataStorageCalls, int *indexStorageCalls)
 {
     std::fstream indexFile("index.dat", std::ios::binary | std::ios::in | std::ios::out);
     std::fstream entriesFile("entries.dat", std::ios::binary | std::ios::in | std::ios::out);
@@ -126,19 +126,25 @@ void makeRangeQuery(int startKey, int endKey, std::vector<GameEntry> *gameEntrie
         gameEntries->push_back(entry);
     }
 
-    *dataStorageCalls = entriesStorage.getReadCount();
-    *indexStorageCalls = indexStorage.getReadCount();
+    *dataStorageCalls = entriesStorage.getFetchedCount();
+    *indexStorageCalls = indexStorage.getFetchedCount();
 }
 
 int main()
 {
     buildDB();
-    makeRangeQuery(429, 430);
+    // makeRangeQuery(0.429, 0.430);
+
     std::vector<GameEntry> gameEntries1;
     int dataStorageCalls = 0;
     int indexStorageCalls = 0;
 
-    makeRangeQuery(429, 430, &gameEntries1, &dataStorageCalls, &indexStorageCalls);
+    makeRangeQuery(0.429, 0.430, &gameEntries1, &dataStorageCalls, &indexStorageCalls);
+    for (int i = 0; i < gameEntries1.size(); i++)
+    {
+        std::cout << "Game Entry TEAM_ID_home: " << gameEntries1[i].TEAM_ID_home
+                  << ", FG_PCT_home: " << gameEntries1[i].FG_PCT_home << std::endl;
+    }
     std::cout << "Total Game Entries: " << gameEntries1.size() << std::endl;
     std::cout << "Data Storage Calls: " << dataStorageCalls << " | expected 275" << std::endl;
     std::cout << "Index Storage Calls: " << indexStorageCalls << " | expected 9" << std::endl;

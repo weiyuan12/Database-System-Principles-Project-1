@@ -6,6 +6,7 @@
 
 #include "./constants.h"
 #include <vector>
+#include <unordered_map>
 // #include <cassert>
 
 class Storage
@@ -13,7 +14,10 @@ class Storage
 private:
     /* data */
     std::fstream *ptr;
-    int readCount = 0;
+    int blocksFetched = 0;
+    int blocksRead = 0;
+    std::unordered_map<int, char *> blocks;
+    const int CACHE_SIZE = 5;
 
 public:
     Storage(std::fstream *fileHandle);
@@ -22,6 +26,7 @@ public:
     ~Storage();
     void deleteBlock(char *block);
     void readBlock(char *readto, int blockNumber);
+    int getFetchedCount();
     int getReadCount();
     void writeBlock(int blockNumber, const char *blockData);
     void bulkWrite(std::vector<char *> &blocks);
@@ -42,19 +47,50 @@ void Storage::addBlock(char *blockData)
 
 void Storage::readBlock(char *readTo, int blockNumber)
 {
-    readCount++;
-    // Calculate the position of the block
-    long int position = blockNumber * BLOCK_SIZE;
+    blocksRead++;
+    // Check if the block is in the cache
+    if (blocks.find(blockNumber) != blocks.end())
+    {
+        // Block is in the cache, copy it to readTo
+        std::memcpy(readTo, blocks[blockNumber], BLOCK_SIZE);
+    }
+    else
+    {
+        // Block is not in the cache, read it from the file
+        // Calculate the position of the block
+        long int position = blockNumber * BLOCK_SIZE;
 
-    // Move the file pointer to the position of the block
-    ptr->seekp(position, std::ios::beg);
+        // Move the file pointer to the position of the block
+        ptr->seekg(position, std::ios::beg);
 
-    ptr->read(readTo, BLOCK_SIZE);
+        // Read the block data from the file
+        ptr->read(readTo, BLOCK_SIZE);
+
+        // Add the block to the cache
+        char *cachedBlock = new char[BLOCK_SIZE];
+        std::memcpy(cachedBlock, readTo, BLOCK_SIZE);
+        blocks[blockNumber] = cachedBlock;
+        blocksFetched++;
+
+        // If the cache size exceeds CACHE_SIZE, invalidate a random block
+        if (blocks.size() > CACHE_SIZE)
+        {
+            auto it = blocks.begin();
+            std::advance(it, rand() % blocks.size());
+            delete[] it->second;
+            blocks.erase(it);
+        }
+    }
+}
+
+int Storage::getFetchedCount()
+{
+    return blocksFetched;
 }
 
 int Storage::getReadCount()
 {
-    return readCount;
+    return blocksRead;
 }
 
 void Storage::writeBlock(int blockNumber, const char *blockData)

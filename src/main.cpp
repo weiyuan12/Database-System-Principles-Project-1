@@ -1,36 +1,10 @@
-#include "./BPTree.cpp"
-#include "./DataFile.cpp"
-#include "./constants.h"
-#include "./DataFileReader.cpp"
-#include <fstream>
 #include <iostream>
-
-enum class UserAction
-{
-    BUILD_DB,
-    QUERY_DB
-};
-
-UserAction getUserAction()
-{
-    int choice;
-    std::cout << "Select an action:\n";
-    std::cout << "1. Build Database\n";
-    std::cout << "2. Query Database\n";
-    std::cout << "Enter choice: ";
-    std::cin >> choice;
-
-    switch (choice)
-    {
-    case 1:
-        return UserAction::BUILD_DB;
-    case 2:
-        return UserAction::QUERY_DB;
-    default:
-        std::cerr << "Invalid choice, defaulting to Query Database." << std::endl;
-        return UserAction::QUERY_DB;
-    }
-}
+#include <stdio.h>
+#include <fstream>
+#include "BPTree.cpp"
+#include "DataFile.cpp"
+#include "DataFileReader.cpp"
+#include <cassert>
 
 void buildDB()
 {
@@ -70,7 +44,7 @@ void buildDB()
     bptreeBlocksToStorage(allBPTreeNodes, depth, rootIndex, &indexStorage);
 }
 
-void makeRangeQuery()
+void makeRangeQuery(float startKey, float endKey, std::vector<GameEntry> *gameEntries, int *dataStorageFetched, int *indexStorageFetched, int *dataStorageRead, int *indexStorageRead)
 {
     std::fstream indexFile("index.dat", std::ios::binary | std::ios::in | std::ios::out);
     std::fstream entriesFile("entries.dat", std::ios::binary | std::ios::in | std::ios::out);
@@ -87,54 +61,61 @@ void makeRangeQuery()
     BPTree bptree = BPTree(&indexStorage);
     DataFile dataFile = DataFile(&entriesStorage);
 
-    int startKey, endKey;
-    std::cout << "Enter the start key: ";
-    std::cin >> startKey;
-    std::cout << "Enter the end key: ";
-    std::cin >> endKey;
-
     std::vector<int> result;
     bptree.findRange(startKey, endKey, result);
 
     for (int i = 0; i < result.size(); i++)
     {
         GameEntryBlock block;
-        dataFile.readGameEntryBlock(&block, result[i]);
-        for (int j = 0; j < block.count; j++)
-        {
-            std::cout << block.entries[j].AST_home
-                      << " " << block.entries[j].FG_PCT_home
-                      << " " << block.entries[j].FT_PCT_home
-                      << " " << block.entries[j].FG3_PCT_home
-                      << " " << block.entries[j].REB_home
-                      << " " << block.entries[j].PTS_home
-                      << " " << block.entries[j].TEAM_ID_home
-                      << " " << block.entries[j].HOME_TEAM_WINS
-                      << std::endl;
-        }
+        int blockIndex = result[i] / MAX_ENTRIES_PER_BLOCK;
+        int positionInBlock = result[i] % MAX_ENTRIES_PER_BLOCK;
+
+        dataFile.readGameEntryBlock(&block, blockIndex);
+        GameEntry &entry = block.entries[positionInBlock];
+
+        gameEntries->push_back(entry);
     }
 
-    std::cout << "Total data blocks read: " << entriesStorage.getReadCount() << std::endl;
-    std::cout << "Total index blocks read: " << indexStorage.getReadCount() << std::endl;
+    *dataStorageFetched = entriesStorage.getFetchedCount();
+    *indexStorageFetched = indexStorage.getFetchedCount();
+    *dataStorageRead = entriesStorage.getReadCount();
+    *indexStorageRead = indexStorage.getReadCount();
 }
 
 int main()
 {
-    while (true)
-    {
-        UserAction action = getUserAction();
+    buildDB();
 
-        switch (action)
+    std::vector<GameEntry> gameEntries1;
+    int dataStoragedFetched = 0;
+    int indexStorageFetched = 0;
+    int dataStorageRead = 0;
+    int indexStorageRead = 0;
+
+    makeRangeQuery(0.5, 0.8, &gameEntries1, &dataStoragedFetched, &indexStorageFetched, &dataStorageRead, &indexStorageRead);
+    // makeRangeQuery(0.429, 0.430, &gameEntries1, &dataStoragedFetched, &indexStorageFetched, &dataStorageRead, &indexStorageRead);
+    
+    if (false)
+    {
+        for (int i = 0; i < gameEntries1.size(); i++)
         {
-        case UserAction::BUILD_DB:
-            buildDB();
-            break;
-        case UserAction::QUERY_DB:
-            makeRangeQuery();
-            break;
-        default:
-            std::cerr << "Invalid action." << std::endl;
-            return 1;
+            std::cout << "Game Entry TEAM_ID_home: " << gameEntries1[i].TEAM_ID_home
+                      << ", FG_PCT_home: " << gameEntries1[i].FG_PCT_home << std::endl;
         }
     }
+    std::cout << "Total Game Entries: " << gameEntries1.size() << std::endl;
+    std::cout << "Data Storage Fetched: " << dataStoragedFetched << " for " << dataStorageRead << " reads" << std::endl;
+    std::cout << "Index Storage Fetched: " << indexStorageFetched << " for " << indexStorageRead << " reads" << std::endl;
+
+    if (BLOCK_SIZE == 512)
+    {
+        assert(gameEntries1.size() == 6176);
+        assert(dataStoragedFetched == 519);
+        assert(indexStorageFetched == 102);
+        assert(dataStorageRead == 6176);
+        assert(indexStorageRead == 102);
+    }
+    std::cout << "Test passed" << std::endl;
+
+    return 0;
 }

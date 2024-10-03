@@ -26,7 +26,7 @@ public:
     Storage *storage;
 
     int find(int key);
-    void findRange(int startKey, int endKey, std::vector<int> &result);
+    void findRange(float startKey, float endKey, std::vector<int> &result);
     void bulkLoad(/*args*/);
     void bulkWriteToStorage(std::vector<BPTreeNode> &allBPTreeNodes, int depth, int rootIndex);
 
@@ -72,10 +72,13 @@ int BPTree::find(int key)
     return -1; // Return -1 if the key is not found
 }
 
-void BPTree::findRange(int startKey, int endKey, std::vector<int> &result)
+void BPTree::findRange(float startKey, float endKey, std::vector<int> &result)
 {
     BPTreeNode *currentNode = root; // Start from the root node
     int currentDepth = 0;           // Initialize the current depth to 0
+
+    int startKeyInt = static_cast<int>(round(startKey * 1000));
+    int endKeyInt = static_cast<int>(round(endKey * 1000));
 
     // Traverse the B+ tree until the leaf level
     while (currentDepth <= metadata->depth)
@@ -84,12 +87,12 @@ void BPTree::findRange(int startKey, int endKey, std::vector<int> &result)
         if (currentDepth == metadata->depth)
         {
             // Find the appropriate child pointer
-            while (i < currentNode->indexBlock->count && startKey > currentNode->indexBlock->keys[i])
+            while (i < currentNode->indexBlock->count && startKeyInt > currentNode->indexBlock->keys[i])
             {
                 i++;
             }
             // Traverse the leaf nodes to find the keys in the range
-            while (currentNode->indexBlock->keys[i] <= endKey)
+            while (currentNode->indexBlock->keys[i] <= endKeyInt)
             {
                 result.push_back(currentNode->indexBlock->childrenPtr[i]);
                 i++;
@@ -109,7 +112,7 @@ void BPTree::findRange(int startKey, int endKey, std::vector<int> &result)
         }
 
         // Find the appropriate child pointer
-        while (i < currentNode->indexBlock->count && startKey >= currentNode->indexBlock->keys[i])
+        while (i < currentNode->indexBlock->count && startKeyInt >= currentNode->indexBlock->keys[i])
         {
             i++;
         }

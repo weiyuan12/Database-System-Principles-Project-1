@@ -92,7 +92,9 @@ int main()
     int dataStorageRead = 0;
     int indexStorageRead = 0;
 
-    makeRangeQuery(0.429, 0.430, &gameEntries1, &dataStoragedFetched, &indexStorageFetched, &dataStorageRead, &indexStorageRead);
+    makeRangeQuery(0.5, 0.8, &gameEntries1, &dataStoragedFetched, &indexStorageFetched, &dataStorageRead, &indexStorageRead);
+    // makeRangeQuery(0.429, 0.430, &gameEntries1, &dataStoragedFetched, &indexStorageFetched, &dataStorageRead, &indexStorageRead);
+    
     if (false)
     {
         for (int i = 0; i < gameEntries1.size(); i++)
@@ -107,11 +109,11 @@ int main()
 
     if (BLOCK_SIZE == 512)
     {
-        assert(gameEntries1.size() == 275);
-        assert(dataStoragedFetched == 24);
-        assert(indexStorageFetched == 9);
-        assert(dataStorageRead == 275);
-        assert(indexStorageRead == 9);
+        assert(gameEntries1.size() == 6176);
+        assert(dataStoragedFetched == 519);
+        assert(indexStorageFetched == 102);
+        assert(dataStorageRead == 6176);
+        assert(indexStorageRead == 102);
     }
     std::cout << "Test passed" << std::endl;
 

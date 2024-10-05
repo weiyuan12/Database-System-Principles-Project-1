@@ -18,6 +18,7 @@ public:
     // GameEntryBlock *readGameEntryBlock(int blockNumber);
     void addGameEntryBlock(GameEntryBlock *block);
     void readGameEntryBlock(GameEntryBlock *gameEntryBlock, int blockNumber);
+    void readAllGameEntries(std::vector<GameEntry> *blocks);
     void writeGameEntryBlock(int blockNumber, GameEntryBlock *block);
     void writeAllGameEntryBlocks(std::vector<GameEntryBlock> &blocks);
     void writeAllGameEntries(std::vector<GameEntry> &blocks);
@@ -37,6 +38,20 @@ public:
 void DataFile::readGameEntryBlock(GameEntryBlock *gameEntryBlock, int blockNumber)
 {
     storage->readBlock(reinterpret_cast<char *>(gameEntryBlock), blockNumber);
+}
+
+void DataFile::readAllGameEntries(std::vector<GameEntry> *blocks)
+{
+    int totalBlocks = storage->getNumberOfBlocks();
+    for (int i = 0; i < totalBlocks; i++)
+    {
+        GameEntryBlock block;
+        readGameEntryBlock(&block, i);
+        for (int j = 0; j < block.count; j++)
+        {
+            blocks->push_back(block.entries[j]);
+        }
+    }
 }
 
 void DataFile::addGameEntryBlock(GameEntryBlock *block)

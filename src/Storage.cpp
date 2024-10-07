@@ -26,6 +26,7 @@ public:
     ~Storage();
     void deleteBlock(char *block);
     void readBlock(char *readto, int blockNumber);
+    int getNumberOfBlocks();
     int getFetchedCount();
     int getReadCount();
     void writeBlock(int blockNumber, const char *blockData);
@@ -81,6 +82,13 @@ void Storage::readBlock(char *readTo, int blockNumber)
             blocks.erase(it);
         }
     }
+}
+
+int Storage::getNumberOfBlocks()
+{
+    ptr->seekg(0, std::ios::end);
+    int size = ptr->tellg();
+    return size / BLOCK_SIZE;
 }
 
 int Storage::getFetchedCount()

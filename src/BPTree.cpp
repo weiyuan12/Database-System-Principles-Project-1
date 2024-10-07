@@ -74,6 +74,7 @@ void BPTree::findRange(float startKey, float endKey, std::vector<int> &result)
 {
     BPTreeNode *currentNode = root; // Start from the root node
     int currentDepth = 0;           // Initialize the current depth to 0
+    // int lastBlock = storage->getNumberOfBlocks() - 1;
 
     int startKeyInt = static_cast<int>(round(startKey * 1000));
     int endKeyInt = static_cast<int>(round(endKey * 1000));
@@ -90,7 +91,7 @@ void BPTree::findRange(float startKey, float endKey, std::vector<int> &result)
                 i++;
             }
             // Traverse the leaf nodes to find the keys in the range
-            while (currentNode->indexBlock->keys[i] <= endKeyInt)
+            while (currentNode->indexBlock->keys[i] <= endKeyInt && currentNode->indexBlock->keys[i] != -1)
             {
                 result.push_back(currentNode->indexBlock->childrenPtr[i]);
                 i++;

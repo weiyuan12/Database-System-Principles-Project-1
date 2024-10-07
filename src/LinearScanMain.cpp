@@ -52,13 +52,13 @@ void linearScan(float startKey, float endKey, int *totalEntries)
     std::vector<GameEntry> gameEntries = std::vector<GameEntry>();
     dataFile.readAllGameEntries(&gameEntries);
 
-    for (const auto &entry : gameEntries)
-    {
-        std::cout << "Game Entry TEAM_ID_home: " << entry.TEAM_ID_home << ", FG_PCT_home: " << entry.FG_PCT_home << std::endl;
-    }
-    *totalEntries = gameEntries.size();
+    // for (const auto &entry : gameEntries)
+    // {
+    //     std::cout << "Game Entry TEAM_ID_home: " << entry.TEAM_ID_home << ", FG_PCT_home: " << entry.FG_PCT_home << std::endl;
+    // }
+    // *totalEntries = gameEntries.size();
 
-    std::cout << "Game Entries: " << gameEntries.size() << std::endl;
+    // std::cout << "Game Entries: " << gameEntries.size() << std::endl;
     std::vector<GameEntry> filteredEntries = std::vector<GameEntry>();
     int count = 0;
     for (const auto &entry : gameEntries)

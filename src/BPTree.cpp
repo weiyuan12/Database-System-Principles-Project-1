@@ -25,7 +25,8 @@ public:
     Storage *storage;
 
     int find(int key);
-    void findRange(float startKey, float endKey, std::vector<int> &result);
+    void printIndexBlock(int blockNumber);
+    void findRange(float startKey, float endKey, std::vector<int> *result);
     void bulkLoad(/*args*/);
     void bulkWriteToStorage(std::vector<BPTreeNode> &allBPTreeNodes, int depth, int rootIndex);
 
@@ -71,10 +72,32 @@ int BPTree::find(int key)
     return -1; // Return -1 if the key is not found
 }
 
-void BPTree::findRange(float startKey, float endKey, std::vector<int> &result)
+void BPTree::printIndexBlock(int blockNumber)
+{
+    char *buffer = new char[BLOCK_SIZE];
+    storage->readBlock(buffer, blockNumber);
+    IndexBlock *indexBlock = reinterpret_cast<IndexBlock *>(buffer);
+    std::cout << "Block Number: " << blockNumber << std::endl;
+    std::cout << "Count: " << indexBlock->count << std::endl;
+    std::cout << "Keys: ";
+    for (int i = 0; i < indexBlock->count; i++)
+    {
+        std::cout << indexBlock->keys[i] << " ";
+    }
+    std::cout << std::endl;
+    std::cout << "Children: ";
+    for (int i = 0; i < indexBlock->count + 1; i++)
+    {
+        std::cout << indexBlock->childrenPtr[i] << " ";
+    }
+    std::cout << std::endl;
+}
+
+void BPTree::findRange(float startKey, float endKey, std::vector<int> *result)
 {
     BPTreeNode *currentNode = root; // Start from the root node
-    int currentDepth = 0;           // Initialize the current depth to 0
+    // printIndexBlock(metadata->rootIndex);
+    int currentDepth = 0; // Initialize the current depth to 0
     // int lastBlock = storage->getNumberOfBlocks() - 1;
 
     int startKeyInt = static_cast<int>(round(startKey * 1000));
@@ -91,35 +114,45 @@ void BPTree::findRange(float startKey, float endKey, std::vector<int> &result)
             {
                 i++;
             }
+
             // Traverse the leaf nodes to find the keys in the range
-            while (currentNode->indexBlock->keys[i] <= endKeyInt && currentNode->indexBlock->keys[i] != -1)
+            while (currentNode->indexBlock->keys[i] <= endKeyInt && currentNode->indexBlock->keys[i] != 0)
             {
-                result.push_back(currentNode->indexBlock->childrenPtr[i]);
+                result->push_back(currentNode->indexBlock->childrenPtr[i]);
                 i++;
+                // std::cout << "i: " << i << std::endl;
                 if (i == currentNode->indexBlock->count)
                 {
                     char *buffer = new char[BLOCK_SIZE];
-                    if (currentNode->indexBlock->childrenPtr[MAX_INDEX_PER_BLOCK] == -1)
+                    if (currentNode->indexBlock->childrenPtr[MAX_INDEX_PER_BLOCK] == 0)
                     {
                         return;
                     }
                     storage->readBlock(buffer, currentNode->indexBlock->childrenPtr[MAX_INDEX_PER_BLOCK] + 1); // +1 to skip the metadata block
                     BPTreeNode *nextNode = new BPTreeNode(buffer);
+                    // std::cout << "INNER NODE" << std::endl;
+                    // printIndexBlock(currentNode->indexBlock->childrenPtr[MAX_INDEX_PER_BLOCK] + 1);
                     currentNode = nextNode; // Move to the next node
                     i = 0;
                 }
             }
+            return;
         }
 
         // Find the appropriate child pointer
-        while (i < currentNode->indexBlock->count && startKeyInt >= currentNode->indexBlock->keys[i])
+        while (i < currentNode->indexBlock->count && startKeyInt > currentNode->indexBlock->keys[i])
         {
             i++;
         }
+        // if (i > 0 && startKeyInt < currentNode->indexBlock->keys[i])
+        // {
+        //     i--;
+        // }
 
         // Read the next node from storage
         char *buffer = new char[BLOCK_SIZE];
         storage->readBlock(buffer, currentNode->indexBlock->childrenPtr[i] + 1); // +1 to skip the metadata block
+        // printIndexBlock(currentNode->indexBlock->childrenPtr[i] + 1);
         BPTreeNode *nextNode = new BPTreeNode(buffer);
         currentNode = nextNode; // Move to the next node
         currentDepth++;         // Increment the depth
@@ -234,23 +267,22 @@ void balanceLastNode(std::vector<BPTreeNode> &leafPBTreeNodes)
     BPTreeNode *secondLastNode = &leafPBTreeNodes[leafPBTreeNodes.size() - 2];
 
     int lastNodeSize = lastNode->indexBlock->count;
-    if(lastNodeSize < (MAX_INDEX_PER_BLOCK + 1) / 2 && leafPBTreeNodes.size() > 1)
+    if (lastNodeSize < (MAX_INDEX_PER_BLOCK + 1) / 2 && leafPBTreeNodes.size() > 1)
     {
         int keysToMove = (MAX_INDEX_PER_BLOCK + 1) / 2 - lastNodeSize;
-        
-        std::copy( lastNode->indexBlock->keys,  lastNode->indexBlock->keys + lastNode->indexBlock->count, lastNode->indexBlock->keys + keysToMove );
-        std::copy( lastNode->indexBlock->childrenPtr,  lastNode->indexBlock->childrenPtr + lastNode->indexBlock->count, lastNode->indexBlock->childrenPtr + keysToMove);
 
-        std::copy(secondLastNode->indexBlock->keys + (secondLastNode->indexBlock->count - keysToMove), secondLastNode->indexBlock->keys + (secondLastNode->indexBlock->count),  lastNode->indexBlock->keys);
-        std::copy(secondLastNode->indexBlock->childrenPtr + (secondLastNode->indexBlock->count - keysToMove), secondLastNode->indexBlock->childrenPtr + (secondLastNode->indexBlock->count),  lastNode->indexBlock->childrenPtr);
-        
+        std::copy(lastNode->indexBlock->keys, lastNode->indexBlock->keys + lastNode->indexBlock->count, lastNode->indexBlock->keys + keysToMove);
+        std::copy(lastNode->indexBlock->childrenPtr, lastNode->indexBlock->childrenPtr + lastNode->indexBlock->count, lastNode->indexBlock->childrenPtr + keysToMove);
+
+        std::copy(secondLastNode->indexBlock->keys + (secondLastNode->indexBlock->count - keysToMove), secondLastNode->indexBlock->keys + (secondLastNode->indexBlock->count), lastNode->indexBlock->keys);
+        std::copy(secondLastNode->indexBlock->childrenPtr + (secondLastNode->indexBlock->count - keysToMove), secondLastNode->indexBlock->childrenPtr + (secondLastNode->indexBlock->count), lastNode->indexBlock->childrenPtr);
+
         std::fill(secondLastNode->indexBlock->keys + (secondLastNode->indexBlock->count - keysToMove), secondLastNode->indexBlock->keys + (secondLastNode->indexBlock->count), 0);
         std::fill(secondLastNode->indexBlock->childrenPtr + (secondLastNode->indexBlock->count - keysToMove), secondLastNode->indexBlock->childrenPtr + (secondLastNode->indexBlock->count), 0);
 
         lastNode->indexBlock->count = lastNode->indexBlock->count + keysToMove;
         secondLastNode->indexBlock->count = secondLastNode->indexBlock->count - keysToMove;
     }
-
 }
 
 void buildLeafLevel(std::vector<int> &gameEntryBlocks, std::vector<BPTreeNode> &leafPBTreeNodes)
@@ -285,10 +317,9 @@ void buildLeafLevel(std::vector<int> &gameEntryBlocks, std::vector<BPTreeNode> &
         }
         else
         {
-            bPTreeNode.indexBlock->childrenPtr[MAX_INDEX_PER_BLOCK] = -1;
+            bPTreeNode.indexBlock->childrenPtr[MAX_INDEX_PER_BLOCK] = 0;
         }
         leafPBTreeNodes.push_back(bPTreeNode);
-
     }
 }
 
@@ -339,7 +370,7 @@ void buildBPTree(std::vector<GameEntryBlock> &gameEntryBlocks, std::vector<BPTre
 
     for (int i = 0; i < allBPTreeNodes.size(); i++)
     {
-        std::cout << "Node: " <<i  << " Count: "<< allBPTreeNodes[i].indexBlock->count << std::endl;
+        std::cout << "Node: " << i << " Count: " << allBPTreeNodes[i].indexBlock->count << std::endl;
     }
 }
 

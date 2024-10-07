@@ -61,22 +61,40 @@ void makeRangeQuery(float startKey, float endKey, std::vector<GameEntry> *gameEn
     BPTree bptree = BPTree(&indexStorage);
     DataFile dataFile = DataFile(&entriesStorage);
 
-    std::vector<int> result;
-    bptree.findRange(startKey, endKey, result);
-
-    for (int i = 0; i < result.size(); i++)
+    std::cout << "Index Storage Blocks" << std::endl;
+    for (int i = 1; i < indexStorage.getNumberOfBlocks(); i++)
     {
-        GameEntryBlock block;
-        int blockIndex = result[i] / MAX_ENTRIES_PER_BLOCK;
-        int positionInBlock = result[i] % MAX_ENTRIES_PER_BLOCK;
+        bptree.printIndexBlock(i);
+    }
 
+    std::vector<int> *result = new std::vector<int>();
+    bptree.findRange(startKey, endKey, result);
+    std::cout << "Count: " << result->size() << std::endl;
+    for (int i = 0; i < result->size(); i++)
+    {
+        GameEntryBlock block = GameEntryBlock();
+        int blockIndex = (*result)[i] / MAX_ENTRIES_PER_BLOCK;
+        int positionInBlock = (*result)[i] % MAX_ENTRIES_PER_BLOCK;
+        std::cout << "i: " << i << " Block Index: " << blockIndex << " Position in Block: " << positionInBlock << std::endl;
+        if (blockIndex == 32)
+        {
+            std::cout << "Block Index: " << blockIndex << " Position in Block: " << positionInBlock << std::endl;
+        }
         dataFile.readGameEntryBlock(&block, blockIndex);
-        GameEntry &entry = block.entries[positionInBlock];
+        GameEntry entry = block.entries[positionInBlock];
 
         gameEntries->push_back(entry);
     }
 
+    std::cout << "Total Game Entries Retrieved: " << gameEntries->size() << std::endl;
+    std::cout << "All Entries: " << std::endl;
+    for (const auto &entry : *gameEntries)
+    {
+        std::cout << "TEAM_ID_home: " << entry.TEAM_ID_home << ", FG_PCT_home: " << entry.FG_PCT_home << std::endl;
+    }
+
     *dataStorageFetched = entriesStorage.getFetchedCount();
+
     *indexStorageFetched = indexStorage.getFetchedCount();
     *dataStorageRead = entriesStorage.getReadCount();
     *indexStorageRead = indexStorage.getReadCount();
@@ -86,7 +104,7 @@ int main()
 {
     buildDB();
 
-    std::vector<GameEntry> gameEntries1;
+    std::vector<GameEntry> gameEntries1 = std::vector<GameEntry>();
     int dataStoragedFetched = 0;
     int indexStorageFetched = 0;
     int dataStorageRead = 0;

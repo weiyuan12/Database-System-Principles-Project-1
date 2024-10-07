@@ -76,7 +76,7 @@ void BPTree::printIndexBlock(int blockNumber)
     storage->readBlock(buffer, blockNumber);
     IndexBlock *indexBlock = reinterpret_cast<IndexBlock *>(buffer);
     std::cout << "Block Number: " << blockNumber << std::endl;
-    std::cout << "Count: " << indexBlock->count << std::endl;
+    std::cout << "Count/Entries: " << indexBlock->count << std::endl;
     std::cout << "Keys: ";
     for (int i = 0; i < indexBlock->count; i++)
     {
@@ -328,11 +328,9 @@ void buildBPTree(std::vector<GameEntryBlock> &gameEntryBlocks, std::vector<BPTre
     {
         for (int j = 0; j < gameEntryBlocks[i].count; j++)
         {
-            std::cout << gameEntryBlocks[i].entries[j].FG_PCT_home << std::endl;
             // check if nan
             if (std::isnan(gameEntryBlocks[i].entries[j].FG_PCT_home))
             {
-                std::cout << gameEntryBlocks[i].entries[j].FG_PCT_home << " is nan" << std::endl;
                 allChildrenKeys.push_back(-1);
                 continue;
             }

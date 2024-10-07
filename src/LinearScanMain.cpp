@@ -45,7 +45,7 @@ void buildDataFile()
     dataFile.writeAllGameEntryBlocks(gameEntriesBlocks);
 }
 
-void linearScan(float startKey, float endKey, int *totalEntries)
+void linearScan(float startKey, float endKey, int *totalEntries, double *timeTaken)
 {
     std::fstream entriesFile("entries.dat", std::ios::binary | std::ios::in | std::ios::out);
 
@@ -59,7 +59,7 @@ void linearScan(float startKey, float endKey, int *totalEntries)
 
     DataFile dataFile = DataFile(&entriesStorage);
 
-    std::cout << "Reading all game entries" << std::endl;
+    std::cout << "[Task 3] Linear Scan comparison" << std::endl;
     std::vector<GameEntry> gameEntries = std::vector<GameEntry>();
     dataFile.readAllGameEntries(&gameEntries);
 
@@ -71,15 +71,22 @@ void linearScan(float startKey, float endKey, int *totalEntries)
 
     // std::cout << "Game Entries: " << gameEntries.size() << std::endl;
     std::vector<GameEntry> filteredEntries = std::vector<GameEntry>();
-    int count = 0;
+
+    auto startLinearScanQuery = std::chrono::high_resolution_clock::now();
+    
     for (const auto &entry : gameEntries)
     {
         if (entry.FG_PCT_home >= startKey && entry.FG_PCT_home <= endKey)
         {
             filteredEntries.push_back(entry);
-            count++;
+            
         }
     }
+    auto stopLinearScanQuery = std::chrono::high_resolution_clock::now();
+    auto durationLinearScanQuery = std::chrono::duration_cast<std::chrono::microseconds>(stopLinearScanQuery - startLinearScanQuery);
+    *timeTaken = durationLinearScanQuery.count();
+    std::cout << "[Task 3] Time taken for LinearScan: " << durationLinearScanQuery.count() << " microseconds" << std::endl;
+
 
     // if (true)
     // {
@@ -88,18 +95,16 @@ void linearScan(float startKey, float endKey, int *totalEntries)
     //         std::cout << "Game Entry TEAM_ID_home: " << entry.TEAM_ID_home << ", FG_PCT_home: " << entry.FG_PCT_home << std::endl;
     //     }
     // }
-    std::cout << "Filtered Game Entries: " << count << std::endl;
-    std::cout << "Total Game Entries: " << filteredEntries.size() << std::endl;
-    std::cout << "Data Storage Fetched: " << entriesStorage.getFetchedCount() << " for " << entriesStorage.getReadCount() << " reads" << std::endl;
+    std::cout << "[Task 3] Total Game Entries Retrieved: " << filteredEntries.size() << std::endl;
+    std::cout << "[Task 3] Data blocks accessed: " << entriesStorage.getFetchedCount() << " for " << entriesStorage.getReadCount() << " entries retrieved" << std::endl;
 }
 
 int main()
 {
     buildDataFile();
     int totalEntries = 0;
-    auto startBPTreeQuery = std::chrono::high_resolution_clock::now();
-    linearScan(0.5, 0.8, &totalEntries);
-    auto stopBPTreeQuery = std::chrono::high_resolution_clock::now();
-    auto durationBPTreeQuery = std::chrono::duration_cast<std::chrono::microseconds>(stopBPTreeQuery - startBPTreeQuery);
-    std::cout << "Time taken by function: " << durationBPTreeQuery.count() << " microseconds" << std::endl;
+    double timeTaken = 0;
+
+    linearScan(0.5, 0.8, &totalEntries, &timeTaken);
+    std::cout << "[Task 3] Time taken for LinearScan: " << timeTaken << " microseconds" << std::endl;
 }

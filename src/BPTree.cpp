@@ -38,8 +38,8 @@ public:
 // We can treat -1 as cannot find the key
 int BPTree::find(int key)
 {
-    BPTreeNode *currentNode = root; 
-    int currentDepth = 0;       
+    BPTreeNode *currentNode = root;
+    int currentDepth = 0;
 
     while (currentDepth <= metadata->depth)
     {
@@ -64,8 +64,8 @@ int BPTree::find(int key)
         char *buffer = new char[BLOCK_SIZE];
         storage->readBlock(buffer, currentNode->indexBlock->childrenPtr[i] + 1);
         BPTreeNode *nextNode = new BPTreeNode(buffer);
-        currentNode = nextNode; 
-        currentDepth++;         
+        currentNode = nextNode;
+        currentDepth++;
     }
     return -1; // Return -1 if the key is not found
 }
@@ -127,7 +127,7 @@ void BPTree::findRange(float startKey, float endKey, std::vector<int> *result)
                     }
                     storage->readBlock(buffer, currentNode->indexBlock->childrenPtr[MAX_INDEX_PER_BLOCK] + 1); // +1 to skip the metadata block
                     BPTreeNode *nextNode = new BPTreeNode(buffer);
-                   
+
                     currentNode = nextNode;
                     i = 0;
                 }
@@ -328,6 +328,15 @@ void buildBPTree(std::vector<GameEntryBlock> &gameEntryBlocks, std::vector<BPTre
     {
         for (int j = 0; j < gameEntryBlocks[i].count; j++)
         {
+            std::cout << gameEntryBlocks[i].entries[j].FG_PCT_home << std::endl;
+            // check if nan
+            if (std::isnan(gameEntryBlocks[i].entries[j].FG_PCT_home))
+            {
+                std::cout << gameEntryBlocks[i].entries[j].FG_PCT_home << " is nan" << std::endl;
+                allChildrenKeys.push_back(-1);
+                continue;
+            }
+
             allChildrenKeys.push_back(static_cast<int>(round(gameEntryBlocks[i].entries[j].FG_PCT_home * 1000)));
         }
     }

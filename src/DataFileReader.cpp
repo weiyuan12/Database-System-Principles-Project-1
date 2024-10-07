@@ -35,7 +35,7 @@ public:
         while (std::getline(file, line))
         {
             std::istringstream ss(line);
-            GameEntry game;
+            GameEntry game = {};
             std::string date;
             std::string wins;
 
@@ -44,7 +44,9 @@ public:
             ss.ignore(); // ignore tab character
             ss >> game.PTS_home;
             ss.ignore(); // ignore tab character
-            ss >> game.FG_PCT_home;
+            std::string fg_pct_home;
+            std::getline(ss, fg_pct_home, '\t');
+            game.FG_PCT_home = fg_pct_home.empty() ? std::numeric_limits<float>::quiet_NaN() : std::stod(fg_pct_home);
             ss.ignore(); // ignore tab character
             ss >> game.FT_PCT_home;
             ss.ignore(); // ignore tab character

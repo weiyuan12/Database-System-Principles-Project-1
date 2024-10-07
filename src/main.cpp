@@ -4,7 +4,6 @@
 #include "BPTree.cpp"
 #include "DataFile.cpp"
 #include "DataFileReader.cpp"
-#include "LinearScanMain.cpp"
 #include <cassert>
 #include <chrono>
 
@@ -30,23 +29,40 @@ void buildDB()
     // DataFileReader reader("../data/game_short.txt");
     std::vector<GameEntry> games = reader.readData();
     std::cout << "-------Task 1 -------" << std::endl;
-    std::cout << "[Task 1] Size of a record: " << sizeof(games[0]) << std::endl; 
-    std::cout << "[Task 1] Number of records from memory: " << games.size()  << std::endl; 
+    std::cout << "[Task 1] Size of a record: " << sizeof(games[0]) << std::endl;
+    std::cout << "[Task 1] Number of records from memory: " << games.size() << std::endl;
     std::stable_sort(games.begin(), games.end(), [](const GameEntry &a, const GameEntry &b)
-                     { return a.FG_PCT_home < b.FG_PCT_home; });
+                     {
+                         bool isNaN_a = std::isnan(a.FG_PCT_home);
+                         bool isNaN_b = std::isnan(b.FG_PCT_home);
 
-    std::vector<GameEntryBlock> gameEntriesBlocks = std::vector<GameEntryBlock>();
+                         if (isNaN_a && !isNaN_b)
+                             return true; // `a` is NaN, so it's "less than" `b`
+                         if (!isNaN_a && isNaN_b)
+                             return false; // `b` is NaN, so `a` is "greater than" `b`
+
+                         return a.FG_PCT_home < b.FG_PCT_home; // Standard comparison if both are numbers
+                     });
+    std::cout << "[dbg] Number of records after sorting: " << games.size() << std::endl;
+
+    for (const auto &entry : games)
+    {
+        std::cout << "Game Entry TEAM_ID_home: " << entry.TEAM_ID_home << ", FG_PCT_home: " << entry.FG_PCT_home << std::endl;
+    }
+
+    std::vector<GameEntryBlock>
+        gameEntriesBlocks = std::vector<GameEntryBlock>();
     GameEntriesToBlocks(games, gameEntriesBlocks);
-    std::cout << "[Task 1] Number of records in a block: " << gameEntriesBlocks[0].count  << std::endl; 
+    std::cout << "[Task 1] Number of records in a block: " << gameEntriesBlocks[0].count << std::endl;
     dataFile.writeAllGameEntryBlocks(gameEntriesBlocks);
 
     std::vector<BPTreeNode> allBPTreeNodes = std::vector<BPTreeNode>();
     int depth = 0;
     int rootIndex = 0;
     buildBPTree(gameEntriesBlocks, allBPTreeNodes, &depth, &rootIndex);
-    std::cout << "[Task 1] Number of Blocks needed: " << gameEntriesBlocks.size()  << std::endl; 
-    std::cout << "[Task 1] Number of Records in last block: " << gameEntriesBlocks[1903].count  << std::endl;
-    int a = ((gameEntriesBlocks.size() -1) * gameEntriesBlocks[0].count ) + gameEntriesBlocks[1903].count;
+    std::cout << "[Task 1] Number of Blocks needed: " << gameEntriesBlocks.size() << std::endl;
+    std::cout << "[Task 1] Number of Records in last block: " << gameEntriesBlocks[1903].count << std::endl;
+    int a = ((gameEntriesBlocks.size() - 1) * gameEntriesBlocks[0].count) + gameEntriesBlocks[1903].count;
     std::cout << "[Task 1] Total records in Blocks: " << a << std::endl;
     std::cout << "-------Task 2 -------" << std::endl;
     std::cout << "[Task 2] Parameter n (MAX_INDEX_PER_BLOCK): " << allBPTreeNodes[0].indexBlock->count << std::endl;
@@ -55,7 +71,7 @@ void buildDB()
     std::cout << "[Task 2] Content of root node: ";
     bptreeBlocksToStorage(allBPTreeNodes, depth, rootIndex, &indexStorage);
     BPTree bptree = BPTree(&indexStorage);
-    bptree.printIndexBlock(432);
+    // bptree.printIndexBlock(432);
 }
 
 void makeRangeQuery(float startKey, float endKey, std::vector<GameEntry> *gameEntries, int *dataStorageFetched, int *indexStorageFetched, int *dataStorageRead, int *indexStorageRead)
@@ -78,7 +94,7 @@ void makeRangeQuery(float startKey, float endKey, std::vector<GameEntry> *gameEn
     // std::cout << "Index Storage Blocks" << std::endl;
     for (int i = 1; i < indexStorage.getNumberOfBlocks(); i++)
     {
-        //bptree.printIndexBlock(i);
+        // bptree.printIndexBlock(i);
     }
     std::vector<int> *result = new std::vector<int>();
     bptree.findRange(startKey, endKey, result);
@@ -106,7 +122,6 @@ void makeRangeQuery(float startKey, float endKey, std::vector<GameEntry> *gameEn
     // }
 
     *dataStorageFetched = entriesStorage.getFetchedCount();
-
     *indexStorageFetched = indexStorage.getFetchedCount();
     *dataStorageRead = entriesStorage.getReadCount();
     *indexStorageRead = indexStorage.getReadCount();
@@ -141,14 +156,6 @@ int main()
     std::cout << "Data Storage Fetched: " << dataStoragedFetched << " for " << dataStorageRead << " reads" << std::endl;
     std::cout << "[Task 3] Index Storage Fetched: " << indexStorageFetched << " for " << indexStorageRead << " reads" << std::endl;
 
-    // if (BLOCK_SIZE == 512)
-    // {
-    //     assert(gameEntries1.size() == 275);
-    //     assert(dataStoragedFetched == 24);
-    //     assert(indexStorageFetched == 9);
-    //     assert(dataStorageRead == 275);
-    //     assert(indexStorageRead == 9);
-    // }
     std::cout << "Test passed" << std::endl;
 
     return 0;

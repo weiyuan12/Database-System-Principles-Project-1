@@ -22,6 +22,7 @@ public:
     void writeGameEntryBlock(int blockNumber, GameEntryBlock *block);
     void writeAllGameEntryBlocks(std::vector<GameEntryBlock> &blocks);
     void writeAllGameEntries(std::vector<GameEntry> &blocks);
+    void printDataEntry(int n);
     DataFile(std::fstream *file);
     DataFile(Storage *storage);
     ~DataFile();
@@ -102,6 +103,16 @@ void DataFile::writeAllGameEntries(std::vector<GameEntry> &blocks)
     std::vector<GameEntryBlock> gameEntryBlocks;
     GameEntriesToBlocks(blocks, gameEntryBlocks);
     writeAllGameEntryBlocks(gameEntryBlocks);
+}
+
+void DataFile::printDataEntry(int n)
+{
+    GameEntryBlock block;
+    int blkNum = n / MAX_ENTRIES_PER_BLOCK;
+    int pos = n % MAX_ENTRIES_PER_BLOCK;
+    readGameEntryBlock(&block, blkNum);
+    GameEntry entry = block.entries[pos];
+    std::cout << "Game Entry TEAM_ID_home: " << entry.TEAM_ID_home << ", FG_PCT_home: " << entry.FG_PCT_home << std::endl;
 }
 
 DataFile::DataFile(std::fstream *file)

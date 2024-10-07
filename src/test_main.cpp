@@ -48,7 +48,7 @@ int main()
     int startKey = 429;
     int endKey = 485;
     std::vector<int> gameEntryPositions = std::vector<int>();
-    bptree.findRange(startKey, endKey, gameEntryPositions);
+    bptree.findRange(startKey, endKey, &gameEntryPositions);
     std::cout << "Game Entry Positions: ";
     for (int i = 0; i < gameEntryPositions.size(); i++)
     {

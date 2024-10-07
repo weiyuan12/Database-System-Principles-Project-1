@@ -27,7 +27,17 @@ void buildDataFile()
     std::vector<GameEntry> games = reader.readData();
 
     std::stable_sort(games.begin(), games.end(), [](const GameEntry &a, const GameEntry &b)
-                     { return a.FG_PCT_home < b.FG_PCT_home; });
+                     {
+                         bool isNaN_a = std::isnan(a.FG_PCT_home);
+                         bool isNaN_b = std::isnan(b.FG_PCT_home);
+
+                         if (isNaN_a && !isNaN_b)
+                             return true; // `a` is NaN, so it's "less than" `b`
+                         if (!isNaN_a && isNaN_b)
+                             return false; // `b` is NaN, so `a` is "greater than" `b`
+
+                         return a.FG_PCT_home < b.FG_PCT_home; // Standard comparison if both are numbers
+                     });
 
     std::vector<GameEntryBlock> gameEntriesBlocks = std::vector<GameEntryBlock>();
     GameEntriesToBlocks(games, gameEntriesBlocks);
@@ -85,11 +95,11 @@ void linearScan(float startKey, float endKey, int *totalEntries)
 
 int main()
 {
-        buildDataFile();
-        int totalEntries = 0;
-        auto startBPTreeQuery = std::chrono::high_resolution_clock::now();
-        linearScan(0.5, 0.8, &totalEntries);
-        auto stopBPTreeQuery = std::chrono::high_resolution_clock::now();
-        auto durationBPTreeQuery = std::chrono::duration_cast<std::chrono::microseconds>(stopBPTreeQuery - startBPTreeQuery);
-        std::cout << "Time taken by function: " << durationBPTreeQuery.count() << " microseconds" << std::endl;
+    buildDataFile();
+    int totalEntries = 0;
+    auto startBPTreeQuery = std::chrono::high_resolution_clock::now();
+    linearScan(0.5, 0.8, &totalEntries);
+    auto stopBPTreeQuery = std::chrono::high_resolution_clock::now();
+    auto durationBPTreeQuery = std::chrono::duration_cast<std::chrono::microseconds>(stopBPTreeQuery - startBPTreeQuery);
+    std::cout << "Time taken by function: " << durationBPTreeQuery.count() << " microseconds" << std::endl;
 }

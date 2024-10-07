@@ -38,10 +38,9 @@ public:
 // We can treat -1 as cannot find the key
 int BPTree::find(int key)
 {
-    BPTreeNode *currentNode = root; // Start from the root node
-    int currentDepth = 0;           // Initialize the current depth to 0
+    BPTreeNode *currentNode = root; 
+    int currentDepth = 0;       
 
-    // Traverse the B+ tree until the leaf level
     while (currentDepth <= metadata->depth)
     {
         int i = 0;
@@ -63,10 +62,10 @@ int BPTree::find(int key)
 
         // Read the next node from storage
         char *buffer = new char[BLOCK_SIZE];
-        storage->readBlock(buffer, currentNode->indexBlock->childrenPtr[i] + 1); // +1 to skip the metadata block
+        storage->readBlock(buffer, currentNode->indexBlock->childrenPtr[i] + 1);
         BPTreeNode *nextNode = new BPTreeNode(buffer);
-        currentNode = nextNode; // Move to the next node
-        currentDepth++;         // Increment the depth
+        currentNode = nextNode; 
+        currentDepth++;         
     }
     return -1; // Return -1 if the key is not found
 }
@@ -119,7 +118,6 @@ void BPTree::findRange(float startKey, float endKey, std::vector<int> *result)
             {
                 result->push_back(currentNode->indexBlock->childrenPtr[i]);
                 i++;
-                // std::cout << "i: " << i << std::endl;
                 if (i == currentNode->indexBlock->count)
                 {
                     char *buffer = new char[BLOCK_SIZE];
@@ -129,9 +127,8 @@ void BPTree::findRange(float startKey, float endKey, std::vector<int> *result)
                     }
                     storage->readBlock(buffer, currentNode->indexBlock->childrenPtr[MAX_INDEX_PER_BLOCK] + 1); // +1 to skip the metadata block
                     BPTreeNode *nextNode = new BPTreeNode(buffer);
-                    // std::cout << "INNER NODE" << std::endl;
-                    // printIndexBlock(currentNode->indexBlock->childrenPtr[MAX_INDEX_PER_BLOCK] + 1);
-                    currentNode = nextNode; // Move to the next node
+                   
+                    currentNode = nextNode;
                     i = 0;
                 }
             }
@@ -360,11 +357,6 @@ void buildBPTree(std::vector<GameEntryBlock> &gameEntryBlocks, std::vector<BPTre
     }
 
     *rootIndex = allBPTreeNodes.size();
-
-    for (int i = 0; i < allBPTreeNodes.size(); i++)
-    {
-        std::cout << "Node: " << i << " Count: " << allBPTreeNodes[i].indexBlock->count << std::endl;
-    }
 }
 
 void bptreeBlocksToStorage(std::vector<BPTreeNode> &allBPTreeNodes, int depth, int rootIndex, Storage *storage)

@@ -4,7 +4,9 @@
 #include "BPTree.cpp"
 #include "DataFile.cpp"
 #include "DataFileReader.cpp"
+#include "LinearScanMain.cpp"
 #include <cassert>
+#include <chrono>
 
 void buildDB()
 {
@@ -120,7 +122,12 @@ int main()
     int dataStorageRead = 0;
     int indexStorageRead = 0;
 
+    auto startBPTreeQuery = std::chrono::high_resolution_clock::now();
     makeRangeQuery(0.5, 0.8, &gameEntries1, &dataStoragedFetched, &indexStorageFetched, &dataStorageRead, &indexStorageRead);
+    auto stopBPTreeQuery = std::chrono::high_resolution_clock::now();
+    auto durationBPTreeQuery = std::chrono::duration_cast<std::chrono::microseconds>(stopBPTreeQuery - startBPTreeQuery);
+    std::cout << "Time taken by function: " << durationBPTreeQuery.count() << " microseconds" << std::endl;
+
     std::cout << "Range query done" << std::endl;
     // if (true)
     // {

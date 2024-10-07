@@ -5,6 +5,7 @@
 #include "DataFile.cpp"
 #include "DataFileReader.cpp"
 #include <cassert>
+#include <chrono>
 
 void buildDataFile()
 {
@@ -70,13 +71,13 @@ void linearScan(float startKey, float endKey, int *totalEntries)
         }
     }
 
-    if (true)
-    {
-        for (const auto &entry : filteredEntries)
-        {
-            std::cout << "Game Entry TEAM_ID_home: " << entry.TEAM_ID_home << ", FG_PCT_home: " << entry.FG_PCT_home << std::endl;
-        }
-    }
+    // if (true)
+    // {
+    //     for (const auto &entry : filteredEntries)
+    //     {
+    //         std::cout << "Game Entry TEAM_ID_home: " << entry.TEAM_ID_home << ", FG_PCT_home: " << entry.FG_PCT_home << std::endl;
+    //     }
+    // }
     std::cout << "Filtered Game Entries: " << count << std::endl;
     std::cout << "Total Game Entries: " << filteredEntries.size() << std::endl;
     std::cout << "Data Storage Fetched: " << entriesStorage.getFetchedCount() << " for " << entriesStorage.getReadCount() << " reads" << std::endl;
@@ -84,8 +85,11 @@ void linearScan(float startKey, float endKey, int *totalEntries)
 
 int main()
 {
-    buildDataFile();
-    int totalEntries = 0;
-    linearScan(0.5, 0.8, &totalEntries);
-    return 0;
+        buildDataFile();
+        int totalEntries = 0;
+        auto startBPTreeQuery = std::chrono::high_resolution_clock::now();
+        linearScan(0.5, 0.8, &totalEntries);
+        auto stopBPTreeQuery = std::chrono::high_resolution_clock::now();
+        auto durationBPTreeQuery = std::chrono::duration_cast<std::chrono::microseconds>(stopBPTreeQuery - startBPTreeQuery);
+        std::cout << "Time taken by function: " << durationBPTreeQuery.count() << " microseconds" << std::endl;
 }

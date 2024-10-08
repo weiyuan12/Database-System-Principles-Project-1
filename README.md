@@ -1,15 +1,8 @@
 # Database-System-Principles-Project-1
-## TODO:
 
-- [ ] Write a README.md file for how to run the code
-- [x] Fix storage to use an internal cache to reduce disk I/O (like query with 0.450 instead of 450)
-- [x] Fix the query key used in the query function
-- [ ] Varify the correctness of the code
-- - [ ] The results is correct
-- - [ ] The Number of I/Os is correct for index and data blocks
+## IMPORTANT NOTE
 
-
-- [x] Bug where if the block size is not 64, it will not work
+Program does NOT run on Linux/MacOS environments, due to some DataFileReader compiler issues. Please use a Windows OS
 
 
 ## Prerequisites
@@ -32,41 +25,34 @@ git clone https://github.com/weiyuan12/Database-System-Principles-Project-1.git
 
 ### Building the Project
 
-1. Open a terminal.
-2. Navigate to the src directory.
-3. Compile the code:
+#### Navigate to src and compile project
 
 Windows
 ```bash
-g++ -o Entry.exe main.cpp BPTree.cpp BPTreeNode.cpp DataFile.cpp DataFileReader.cpp Storage.cpp
-```
-Linux and macOS
-```bash
-g++ -o Entry main.cpp BPTree.cpp BPTreeNode.cpp DataFile.cpp DataFileReader.cpp Storage.cpp
+cd src
+g++ main.cpp -o main
 ```
 
-### Usage
-To run the program, execute the following command:
+#### Execution of code
 
 Windows
 ```bash
-./Entry.exe
+./main.exe
 ```
-Linux and macOS
+
+### Running of Linear Scan
+
+Windows
 ```bash
-./Entry
+cd src
+g++ LinearScanMain.cpp -o LinearScanMain
+```
+
+#### Execution of code
+Windows
+```bash
+./LinearScanMain.exe
 ```
 
 ### Testing
-To run tests for the B-Tree implementation, you can compile and execute the test files.
-
-Windows
-```bash
-g++ -o test_BPTree test_BPTree.cpp BPTree.cpp BPTreeNode.cpp
-./test_BPTree
-```
-Linux and macOS
-```bash
-g++ -o test_BPTree test_BPTree.cpp BPTree.cpp BPTreeNode.cpp
-./test_BPTree
-```
+Testing was done for isolated components, which have been deprecated once main.cpp has been completed

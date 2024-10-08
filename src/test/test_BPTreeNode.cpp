@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cassert>
-#include "BPTreeNode.cpp"
-#include "constants.h"
+#include "../BPTreeNode.cpp"
+#include "../constants.h"
 
 void test_BPTreeNode_constructor_and_serialize()
 {

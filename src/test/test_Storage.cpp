@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <fstream> // Add this line
 #include <cstring> // Add this line for std::memcmp
-#include "Storage.cpp"
+#include "../Storage.cpp"
 #include <iostream>
 
 void testAddBlock()

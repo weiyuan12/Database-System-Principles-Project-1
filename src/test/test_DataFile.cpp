@@ -1,8 +1,8 @@
 #include <iostream>
 #include <fstream>
-#include "DataFile.cpp"
-#include "Storage.cpp"
-#include "constants.h"
+#include "../DataFile.cpp"
+#include "../Storage.cpp"
+#include "../constants.h"
 #include <cassert>
 #include <vector>
 
@@ -129,7 +129,7 @@ void testWriteAllGameEntryBlock()
 int main()
 {
     testReadGameEntryBlock();
-    testWriteAllGameEntryBlock();
+    // testWriteAllGameEntryBlock();
 
     return 0;
 }

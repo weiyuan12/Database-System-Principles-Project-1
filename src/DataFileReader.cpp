@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <iomanip>
+#include <limits>
 #include "constants.h"
 
 class DataFileReader

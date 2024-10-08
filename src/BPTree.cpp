@@ -86,7 +86,7 @@ void BPTree::printIndexBlock(int blockNumber)
     std::cout << "Children: ";
     for (int i = 0; i < indexBlock->count + 1; i++)
     {
-        std::cout << indexBlock->childrenPtr[i] << " ";
+        std::cout << indexBlock->childrenPtr[i] + 1 << " ";
     }
     std::cout << std::endl;
 }

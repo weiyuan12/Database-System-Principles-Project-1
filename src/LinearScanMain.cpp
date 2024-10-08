@@ -60,8 +60,28 @@ void linearScan(float startKey, float endKey, int *totalEntries, double *timeTak
     DataFile dataFile = DataFile(&entriesStorage);
 
     std::cout << "[Task 3] Linear Scan comparison" << std::endl;
-    std::vector<GameEntry> gameEntries = std::vector<GameEntry>();
-    dataFile.readAllGameEntries(&gameEntries);
+    // std::vector<GameEntry> gameEntries = std::vector<GameEntry>();
+    // dataFile.readAllGameEntries(&gameEntries);
+
+    auto startLinearScanQuery = std::chrono::high_resolution_clock::now();
+    std::vector<GameEntry> filteredEntries = std::vector<GameEntry>();
+    int num = entriesStorage.getNumberOfBlocks();
+    for(int i = 0; i<=num; i++){
+        GameEntryBlock block = GameEntryBlock();
+        dataFile.readGameEntryBlock(&block, i);
+        //std::cout << "Block: " << i << std::endl;
+        for (int j = 0; j<block.count; j++)
+        {
+            if (block.entries[j].FG_PCT_home >= startKey && block.entries[j].FG_PCT_home <= endKey)
+            {
+                //std::cout << "Game Entries: " << block.entries[j].FG_PCT_home << std::endl;
+                filteredEntries.push_back(block.entries[j]);
+            }
+        }
+    }
+    auto stopLinearScanQuery = std::chrono::high_resolution_clock::now();
+    auto durationLinearScanQuery = std::chrono::duration_cast<std::chrono::microseconds>(stopLinearScanQuery - startLinearScanQuery);
+    *timeTaken = durationLinearScanQuery.count();
 
     // for (const auto &entry : gameEntries)
     // {
@@ -70,22 +90,22 @@ void linearScan(float startKey, float endKey, int *totalEntries, double *timeTak
     // *totalEntries = gameEntries.size();
 
     // std::cout << "Game Entries: " << gameEntries.size() << std::endl;
-    std::vector<GameEntry> filteredEntries = std::vector<GameEntry>();
+    // std::vector<GameEntry> filteredEntries = std::vector<GameEntry>();
 
-    auto startLinearScanQuery = std::chrono::high_resolution_clock::now();
-    
-    for (const auto &entry : gameEntries)
-    {
-        if (entry.FG_PCT_home >= startKey && entry.FG_PCT_home <= endKey)
-        {
-            filteredEntries.push_back(entry);
-            
-        }
-    }
-    auto stopLinearScanQuery = std::chrono::high_resolution_clock::now();
-    auto durationLinearScanQuery = std::chrono::duration_cast<std::chrono::microseconds>(stopLinearScanQuery - startLinearScanQuery);
-    *timeTaken = durationLinearScanQuery.count();
-    std::cout << "[Task 3] Time taken for LinearScan: " << durationLinearScanQuery.count() << " microseconds" << std::endl;
+    // auto startLinearScanQuery = std::chrono::high_resolution_clock::now();
+    // volatile int dummy = 0;
+    // for (const auto &entry : gameEntries)
+    // {
+    //     if (entry.FG_PCT_home >= startKey && entry.FG_PCT_home <= endKey)
+    //     {
+    //         filteredEntries.push_back(entry);
+    //         dummy += entry.FG_PCT_home;
+    //     }
+    // }
+    // auto stopLinearScanQuery = std::chrono::high_resolution_clock::now();
+    // auto durationLinearScanQuery = std::chrono::duration_cast<std::chrono::microseconds>(stopLinearScanQuery - startLinearScanQuery);
+    // *timeTaken = durationLinearScanQuery.count();
+    // std::cout << "[Task 3] Time taken for LinearScan: " << durationLinearScanQuery.count() << " microseconds" << std::endl;
 
 
     // if (true)
@@ -96,7 +116,7 @@ void linearScan(float startKey, float endKey, int *totalEntries, double *timeTak
     //     }
     // }
     std::cout << "[Task 3] Total Game Entries Retrieved: " << filteredEntries.size() << std::endl;
-    std::cout << "[Task 3] Data blocks accessed: " << entriesStorage.getFetchedCount() << " for " << entriesStorage.getReadCount() << " entries retrieved" << std::endl;
+    std::cout << "[Task 3] Data blocks accessed: " << entriesStorage.getFetchedCount() - 1<< " for " << filteredEntries.size()<< " entries retrieved" << std::endl;
 }
 
 int main()

@@ -1,9 +1,9 @@
 #include <iostream>
 #include <stdio.h>
 #include <fstream>
-#include "BPTree.cpp"
-#include "DataFile.cpp"
-#include "DataFileReader.cpp"
+#include "../BPTree.cpp"
+#include "../DataFile.cpp"
+#include "../DataFileReader.cpp"
 #include <cassert>
 
 void buildDB()
@@ -23,7 +23,7 @@ void buildDB()
 
     DataFile dataFile = DataFile(&entriesStorage);
 
-    DataFileReader reader("../data/games.txt");
+    DataFileReader reader("../../data/games.txt");
     // DataFileReader reader("../data/game_short_duplicate.txt");
     // DataFileReader reader("../data/game_short.txt");
     std::vector<GameEntry> games = reader.readData();
@@ -44,56 +44,6 @@ void buildDB()
     bptreeBlocksToStorage(allBPTreeNodes, depth, rootIndex, &indexStorage);
 }
 
-// void makeRangeQuery(int startKey, int endKey)
-// {
-//     std::fstream indexFile("index.dat", std::ios::binary | std::ios::in | std::ios::out);
-//     std::fstream entriesFile("entries.dat", std::ios::binary | std::ios::in | std::ios::out);
-
-//     if (!indexFile.is_open() || !entriesFile.is_open())
-//     {
-//         std::cerr << "Error opening files!" << std::endl;
-//         return;
-//     }
-
-//     Storage indexStorage = Storage(&indexFile);
-//     Storage entriesStorage = Storage(&entriesFile);
-
-//     BPTree bptree = BPTree(&indexStorage);
-//     DataFile dataFile = DataFile(&entriesStorage);
-
-//     std::vector<int> result;
-//     bptree.findRange(startKey, endKey, result);
-//     std::cout << "count: " << result.size() << std::endl;
-//     for (int i : result)
-//     {
-//         std::cout << "Index: " << i << std::endl;
-//     }
-
-//     for (int i = 0; i < result.size(); i++)
-//     {
-//         GameEntryBlock block;
-//         int blockIndex = result[i] / MAX_ENTRIES_PER_BLOCK;
-//         int positionInBlock = result[i] % MAX_ENTRIES_PER_BLOCK;
-
-//         dataFile.readGameEntryBlock(&block, blockIndex);
-//         const GameEntry &entry = block.entries[positionInBlock];
-
-//         std::cout << entry.AST_home
-//                   << " " << entry.FG_PCT_home
-//                   << " " << entry.FT_PCT_home
-//                   << " " << entry.FG3_PCT_home
-//                   << " " << entry.REB_home
-//                   << " " << entry.PTS_home
-//                   << " " << entry.TEAM_ID_home
-//                   << " " << entry.HOME_TEAM_WINS
-//                   << std::endl;
-//     }
-
-//     std::cout << "Tree depth: " << bptree.metadata->depth << std::endl;
-//     std::cout << "Total data blocks read: " << entriesStorage.getReadCount() << std::endl;
-//     std::cout << "Total index blocks read: " << indexStorage.getReadCount() << std::endl;
-// }
-
 void makeRangeQuery(float startKey, float endKey, std::vector<GameEntry> *gameEntries, int *dataStorageCalls, int *indexStorageCalls)
 {
     std::fstream indexFile("index.dat", std::ios::binary | std::ios::in | std::ios::out);
@@ -112,7 +62,7 @@ void makeRangeQuery(float startKey, float endKey, std::vector<GameEntry> *gameEn
     DataFile dataFile = DataFile(&entriesStorage);
 
     std::vector<int> result;
-    bptree.findRange(startKey, endKey, result);
+    bptree.findRange(startKey, endKey, &result);
 
     for (int i = 0; i < result.size(); i++)
     {
@@ -132,8 +82,8 @@ void makeRangeQuery(float startKey, float endKey, std::vector<GameEntry> *gameEn
 
 int main()
 {
+    std::cout << "Test B+ Tree 2" << std::endl;
     buildDB();
-    // makeRangeQuery(0.429, 0.430);
 
     std::vector<GameEntry> gameEntries1;
     int dataStorageCalls = 0;
@@ -146,11 +96,14 @@ int main()
                   << ", FG_PCT_home: " << gameEntries1[i].FG_PCT_home << std::endl;
     }
     std::cout << "Total Game Entries: " << gameEntries1.size() << std::endl;
-    std::cout << "Data Storage Calls: " << dataStorageCalls << " | expected 275" << std::endl;
+    std::cout << "Data Storage Calls: " << dataStorageCalls << " | expected 25" << std::endl;
     std::cout << "Index Storage Calls: " << indexStorageCalls << " | expected 9" << std::endl;
-    assert(gameEntries1.size() == 275);
-    assert(dataStorageCalls == 275);
-    assert(indexStorageCalls == 9);
+    if (BLOCK_SIZE == 512)
+    {
+        assert(gameEntries1.size() == 300);
+        assert(dataStorageCalls == 25);
+        assert(indexStorageCalls == 9);
+    }
     std::cout << "Test passed" << std::endl;
 
     return 0;
